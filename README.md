@@ -6,6 +6,7 @@ Sistema en LangGraph que recibe un diff de un repositorio y devuelve un informe 
 
 - `repo-prueba/`: el repositorio que se revisa. Mini tienda en TypeScript con sus reglas (`CLAUDE.md`) y su perfil (`perfil.toml`).
 - `revisor/`: el sistema. Configuración del modelo, estado, herramientas, RAG y traza.
+- `evaluacion/`: la Parte 0, el modelo de guion y la copia temporal del repo.
 - `tests/`: pruebas del sistema; no llaman a ningún modelo.
 
 ## Preparación
@@ -19,6 +20,26 @@ cp .env.example .env          # y completar
 ```
 
 Con la H200 de la USFQ hace falta la VPN GlobalProtect conectada. El id del modelo no se escribe: se lee de `/v1/models`.
+
+## Uso
+
+```bash
+.venv/bin/python -m revisor evaluacion/parte0/a_impuesto.patch --sistema baseline
+```
+
+Recibe la ruta de un parche, lo aplica sobre una copia temporal de `repo-prueba/` y devuelve el informe. La traza de la corrida queda en `corridas/`.
+
+Desde código, el contrato es `RevisorUnico().run(ruta_del_parche)`, que devuelve `answer`, `trace`, `status`, `model` y `usage`.
+
+## Parte 0
+
+```bash
+.venv/bin/python -m evaluacion.parte0.a_revisor_sin_herramientas
+.venv/bin/python -m evaluacion.parte0.b_rag_plano
+.venv/bin/python -m evaluacion.parte0.c_tests_en_verde
+```
+
+La salida cruda de cada uno está en `evaluacion/parte0/salidas/`.
 
 ## Pruebas
 

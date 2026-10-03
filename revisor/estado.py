@@ -33,6 +33,7 @@ class Estado(TypedDict, total=False):
     archivos: list[str]
     hallazgos: Annotated[list[Hallazgo], operator.add]
     informe: str | None
+    avisos: Annotated[list[str], operator.add]
     # capa 2
     comentarios: list
     respuestas: list

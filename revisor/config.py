@@ -87,12 +87,13 @@ def get_llm(rol: str = "default"):
     )
 
 
-def estructurado(llm, esquema, rol: str = "default"):
-    """Salida con esquema fijo; devuelve {"raw", "parsed", "parsing_error"}. En la H200 el método por defecto no le muestra
-    el esquema al modelo; con function_calling viaja como herramienta."""
-    if config_de(rol).proveedor == "anthropic":
-        return llm.with_structured_output(esquema, include_raw=True)
-    return llm.with_structured_output(esquema, method="function_calling", include_raw=True)
+def estructurado(llm, esquema):
+    """Salida con esquema fijo; devuelve {"raw", "parsed", "parsing_error"}. En la
+    H200 el método por defecto no le muestra el esquema al modelo; con
+    function_calling viaja como herramienta."""
+    if type(llm).__name__ == "ChatOpenAI":
+        return llm.with_structured_output(esquema, method="function_calling", include_raw=True)
+    return llm.with_structured_output(esquema, include_raw=True)
 
 
 def get_embeddings():

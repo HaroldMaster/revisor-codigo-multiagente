@@ -1,0 +1,103 @@
+"""Baseline: un solo agente con las cuatro herramientas y la receta completa.
+
+Es el punto de comparación del sistema multiagente: mismo modelo, mismas
+herramientas, mismo golden set. Lo único que cambia después es repartir el
+trabajo en varios agentes y verificar.
+
+    inicio → preparar → reviewer → informe → fin
+"""
+
+from __future__ import annotations
+
+import os
+import re
+from pathlib import Path
+
+from langgraph.graph import END, START, StateGraph
+
+from evaluacion.repo_temporal import REPO_PRUEBA, repo_con_parches
+
+from .agentes.prompts import TODAS, UNICO
+from .agentes.reviewer import revisar
+from .config import RAIZ, get_embeddings, get_llm, id_modelo
+from .contexto import Contexto
+from .estado import Estado
+from .informe import redactar
+from .perfil import cargar_perfil
+from .rag.indice import construir_indice
+from .traza import Traza
+
+
+def archivos_del_diff(diff: str) -> list[str]:
+    return re.findall(r"^\+\+\+ b/(.+)$", diff, flags=re.MULTILINE)
+
+
+class RevisorBase:
+    """Contrato con el Taller 4: se instancia sin argumentos y .run(pregunta)
+    devuelve answer, trace, status, model y usage. La pregunta es la ruta de un
+    parche que se aplica sobre una copia limpia del repositorio revisado."""
+
+    nombre = "base"
+
+    def __init__(self, llm_de=get_llm, modelo_de=id_modelo, embeddings=None, carpeta_trazas=None):
+        self._llm_de = llm_de
+        self._modelo_de = modelo_de
+        self._embeddings = embeddings
+        self._carpeta_trazas = Path(carpeta_trazas or RAIZ / "corridas")
+        self._repo = Path(os.getenv("REVISOR_REPO", REPO_PRUEBA))
+
+    def grafo(self, contexto: Contexto):
+        raise NotImplementedError
+
+    def run(self, pregunta: str) -> dict:
+        parche = Path(pregunta)
+        traza = Traza(self._carpeta_trazas)
+        modelo = self._modelo_de("default")
+        traza.evento("inicio", sistema=self.nombre, parche=parche.name, modelo=modelo)
+        estado: dict = {}
+        status, error = "failed", None
+        try:
+            with repo_con_parches(parche, origen=self._repo) as repo:
+                perfil = cargar_perfil(repo)
+                indice = construir_indice(perfil, self._embeddings or get_embeddings())
+                contexto = Contexto(perfil, indice, traza, self._llm_de, self._modelo_de)
+                estado = self.grafo(contexto).invoke({"diff": parche.read_text(encoding="utf-8")})
+            status = "incompleto" if estado.get("avisos") else "completed"
+        except Exception as fallo:
+            error = f"{type(fallo).__name__}: {fallo}"
+        finally:
+            traza.cerrar(status, error)
+        return {
+            "answer": estado.get("informe") or f"La revisión no terminó: {error}",
+            "hallazgos": [h.model_dump() for h in estado.get("hallazgos", [])],
+            "trace": str(traza.ruta),
+            "status": status,
+            "model": modelo,
+            "usage": traza.uso(),
+        }
+
+
+class RevisorUnico(RevisorBase):
+    nombre = "baseline"
+
+    def grafo(self, contexto: Contexto):
+        def preparar(estado: Estado) -> dict:
+            return {"archivos": archivos_del_diff(estado["diff"])}
+
+        def reviewer(estado: Estado) -> dict:
+            hallazgos, corte = revisar("reviewer_unico", UNICO, estado["diff"], TODAS, contexto)
+            avisos = [f"El reviewer se detuvo por {corte}; la revisión puede estar incompleta."] if corte else []
+            return {"hallazgos": hallazgos, "avisos": avisos}
+
+        def informe(estado: Estado) -> dict:
+            return {"informe": redactar(estado.get("hallazgos", []), estado.get("avisos"))}
+
+        grafo = StateGraph(Estado)
+        grafo.add_node("preparar", preparar)
+        grafo.add_node("reviewer", reviewer)
+        grafo.add_node("informe", informe)
+        grafo.add_edge(START, "preparar")
+        grafo.add_edge("preparar", "reviewer")
+        grafo.add_edge("reviewer", "informe")
+        grafo.add_edge("informe", END)
+        return grafo.compile()

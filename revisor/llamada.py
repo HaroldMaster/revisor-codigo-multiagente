@@ -42,14 +42,13 @@ def invocar(llm, mensajes, *, agente: str, modelo: str, traza: Traza, reintentos
 
 
 def invocar_estructurado(
-    llm, esquema, mensajes, *, agente: str, modelo: str, traza: Traza, rol: str = "default",
-    reintentos: int = 1,
+    llm, esquema, mensajes, *, agente: str, modelo: str, traza: Traza, reintentos: int = 1
 ):
     """Como invocar, para una respuesta con esquema fijo. Devuelve el objeto
     validado, o None si tras los reintentos el modelo no lo entregó."""
     from .config import estructurado
 
-    ejecutable = estructurado(llm, esquema, rol)
+    ejecutable = estructurado(llm, esquema)
     for _ in range(reintentos + 1):
         inicio = time.perf_counter()
         try:
