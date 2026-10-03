@@ -1,0 +1,7 @@
+{"t_ms": 0, "tipo": "inicio", "sistema": "baseline", "parche": "C07.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 894, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1879, "tokens_salida": 53, "latencia_ms": 871, "error": null}
+{"t_ms": 895, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/descuentos/descuentos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1758, "latencia_ms": 0, "error": null}
+{"t_ms": 1077, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "funciones puras y mutación de parámetros de entrada en utilidades de dominio"}, "tamano_resultado": 2312, "latencia_ms": 182, "error": null}
+{"t_ms": 5665, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3227, "tokens_salida": 372, "latencia_ms": 4587, "error": null}
+{"t_ms": 8557, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3327, "tokens_salida": 257, "latencia_ms": 2889, "error": null}
+{"t_ms": 8559, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 8433, "tokens_salida": 682}, "uso_por_agente": {"reviewer_unico": {"llamadas": 3, "tokens_entrada": 8433, "tokens_salida": 682}}}

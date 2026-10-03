@@ -1,0 +1,10 @@
+{"t_ms": 0, "tipo": "inicio", "sistema": "baseline", "parche": "C05.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 872, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2024, "tokens_salida": 68, "latencia_ms": 850, "error": null}
+{"t_ms": 873, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/pedidos/pedidos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1966, "latencia_ms": 0, "error": null}
+{"t_ms": 873, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/tipos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 978, "latencia_ms": 0, "error": null}
+{"t_ms": 1152, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se tipan las funciones exportadas y el uso de any y console.log en el código"}, "tamano_resultado": 2364, "latencia_ms": 278, "error": null}
+{"t_ms": 1683, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3677, "tokens_salida": 13, "latencia_ms": 531, "error": null}
+{"t_ms": 2739, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "correr_checks", "argumentos": {"tipo": "lint"}, "tamano_resultado": 528, "latencia_ms": 1055, "error": null}
+{"t_ms": 7388, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3839, "tokens_salida": 357, "latencia_ms": 4648, "error": null}
+{"t_ms": 9889, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3924, "tokens_salida": 229, "latencia_ms": 2499, "error": null}
+{"t_ms": 9890, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 13464, "tokens_salida": 667}, "uso_por_agente": {"reviewer_unico": {"llamadas": 4, "tokens_entrada": 13464, "tokens_salida": 667}}}

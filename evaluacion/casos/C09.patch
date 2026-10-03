@@ -1,0 +1,14 @@
+Descripción del cambio: Añade formatearCantidad para el futuro resumen de pedido.
+
+diff --git a/src/utils/dinero.ts b/src/utils/dinero.ts
+index 5e1d03c..bc8c8fc 100644
+--- a/src/utils/dinero.ts
++++ b/src/utils/dinero.ts
+@@ -17,3 +17,7 @@ export function formatearPrecio(centavos: number): string {
+   const fraccion = String(absoluto % CENTAVOS_POR_UNIDAD).padStart(DIGITOS_DE_CENTAVOS, '0');
+   return `${signo}$${unidades}.${fraccion}`;
+ }
++
++export function formatearCantidad(cantidad: number): string {
++  return `${cantidad} u.`;
++}

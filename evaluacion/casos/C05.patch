@@ -1,0 +1,64 @@
+Descripción del cambio: Añade resumenDePedido para mostrar un pedido en una línea.
+
+diff --git a/src/index.ts b/src/index.ts
+index 023b38d..525e8f3 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -8,6 +8,6 @@ export {
+   ErrorValidacion,
+ } from './errores';
+ export { Inventario } from './inventario/inventario';
+-export { IMPUESTO_PORCENTAJE, crearPedido } from './pedidos/pedidos';
++export { IMPUESTO_PORCENTAJE, crearPedido, resumenDePedido } from './pedidos/pedidos';
+ export type { Cupon, CuponFijo, CuponPorcentaje, LineaCarrito, Pedido, Producto } from './tipos';
+ export { formatearPrecio } from './utils/dinero';
+diff --git a/src/pedidos/pedidos.test.ts b/src/pedidos/pedidos.test.ts
+index 1ec4104..93612bc 100644
+--- a/src/pedidos/pedidos.test.ts
++++ b/src/pedidos/pedidos.test.ts
+@@ -3,7 +3,7 @@ import { Carrito } from '../carrito/carrito';
+ import { ErrorStockInsuficiente, ErrorValidacion } from '../errores';
+ import { Inventario } from '../inventario/inventario';
+ import type { Cupon, Producto } from '../tipos';
+-import { crearPedido } from './pedidos';
++import { crearPedido, resumenDePedido } from './pedidos';
+ 
+ const teclado: Producto = { id: 'teclado', nombre: 'Teclado', precioCentavos: 2500 };
+ const raton: Producto = { id: 'raton', nombre: 'Ratón', precioCentavos: 1200 };
+@@ -66,3 +66,14 @@ describe('crearPedido', () => {
+     expect(inventario.disponible('raton')).toBe(2);
+   });
+ });
++
++describe('resumenDePedido', () => {
++  it('muestra el id y el total con formato de precio', () => {
++    const inventario = new Inventario();
++    inventario.registrar('teclado', 5);
++    const carrito = new Carrito();
++    carrito.agregar(teclado, 2);
++    const pedido = crearPedido('P-9', carrito, inventario);
++    expect(resumenDePedido(pedido)).toBe('P-9: $57.50');
++  });
++});
+diff --git a/src/pedidos/pedidos.ts b/src/pedidos/pedidos.ts
+index 61e6d75..a4b3b44 100644
+--- a/src/pedidos/pedidos.ts
++++ b/src/pedidos/pedidos.ts
+@@ -3,7 +3,7 @@ import { calcularDescuento } from '../descuentos/descuentos';
+ import { ErrorValidacion } from '../errores';
+ import type { Inventario } from '../inventario/inventario';
+ import type { Cupon, LineaCarrito, Pedido } from '../tipos';
+-import { porcentajeDe } from '../utils/dinero';
++import { formatearPrecio, porcentajeDe } from '../utils/dinero';
+ 
+ export const IMPUESTO_PORCENTAJE = 15;
+ 
+@@ -48,3 +48,8 @@ function reservarTodo(lineas: readonly LineaCarrito[], inventario: Inventario):
+     throw error;
+   }
+ }
++
++export function resumenDePedido(pedido: any): string {
++  console.log('resumen de pedido', pedido.id);
++  return `${pedido.id}: ${formatearPrecio(pedido.totalCentavos)}`;
++}

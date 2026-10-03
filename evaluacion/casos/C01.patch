@@ -1,0 +1,16 @@
+Descripción del cambio: Reordena el cálculo de totales en crearPedido para que el impuesto quede junto al subtotal.
+
+diff --git a/src/pedidos/pedidos.ts b/src/pedidos/pedidos.ts
+index 61e6d75..b6c94ff 100644
+--- a/src/pedidos/pedidos.ts
++++ b/src/pedidos/pedidos.ts
+@@ -21,8 +21,8 @@ export function crearPedido(
+ 
+   const subtotalCentavos = carrito.subtotalCentavos();
+   const descuentoCentavos = cupon ? calcularDescuento(subtotalCentavos, cupon) : 0;
++  const impuestoCentavos = porcentajeDe(subtotalCentavos, IMPUESTO_PORCENTAJE);
+   const baseCentavos = subtotalCentavos - descuentoCentavos;
+-  const impuestoCentavos = porcentajeDe(baseCentavos, IMPUESTO_PORCENTAJE);
+ 
+   return {
+     id,

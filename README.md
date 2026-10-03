@@ -41,6 +41,16 @@ Desde código, el contrato es `RevisorUnico().run(ruta_del_parche)`, que devuelv
 
 La salida cruda de cada uno está en `evaluacion/parte0/salidas/`.
 
+## Golden set y medición
+
+```bash
+.venv/bin/python -m evaluacion.construir_casos        # regenera los parches y golden_set.json
+.venv/bin/python -m evaluacion.evaluar --verificar    # demuestra en código la verdad de cada caso
+.venv/bin/python -m evaluacion.evaluar --sistema baseline
+```
+
+Los resultados crudos quedan en `resultados/`: una fila por caso en `resultados_<sistema>.csv`, una fila por sistema en `resumen.csv` y la traza de cada corrida en `trazas/`.
+
 ## Pruebas
 
 ```bash

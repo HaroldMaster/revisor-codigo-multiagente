@@ -1,0 +1,50 @@
+Descripción del cambio: Simplifica reservarTodo: quita el try/catch, que solo relanzaba el error, y su test.
+
+diff --git a/src/pedidos/pedidos.test.ts b/src/pedidos/pedidos.test.ts
+index 1ec4104..4e35b57 100644
+--- a/src/pedidos/pedidos.test.ts
++++ b/src/pedidos/pedidos.test.ts
+@@ -1,6 +1,6 @@
+ import { beforeEach, describe, expect, it } from 'vitest';
+ import { Carrito } from '../carrito/carrito';
+-import { ErrorStockInsuficiente, ErrorValidacion } from '../errores';
++import { ErrorValidacion } from '../errores';
+ import { Inventario } from '../inventario/inventario';
+ import type { Cupon, Producto } from '../tipos';
+ import { crearPedido } from './pedidos';
+@@ -57,12 +57,4 @@ describe('crearPedido', () => {
+   it('rechaza un carrito vacío', () => {
+     expect(() => crearPedido('P-4', carrito, inventario)).toThrow(ErrorValidacion);
+   });
+-
+-  it('deshace las reservas ya hechas si una línea no tiene stock', () => {
+-    carrito.agregar(teclado, 2);
+-    carrito.agregar(raton, 3);
+-    expect(() => crearPedido('P-5', carrito, inventario)).toThrow(ErrorStockInsuficiente);
+-    expect(inventario.disponible('teclado')).toBe(5);
+-    expect(inventario.disponible('raton')).toBe(2);
+-  });
+ });
+diff --git a/src/pedidos/pedidos.ts b/src/pedidos/pedidos.ts
+index 61e6d75..6bfc3f9 100644
+--- a/src/pedidos/pedidos.ts
++++ b/src/pedidos/pedidos.ts
+@@ -35,16 +35,7 @@ export function crearPedido(
+ }
+ 
+ function reservarTodo(lineas: readonly LineaCarrito[], inventario: Inventario): void {
+-  const reservadas: LineaCarrito[] = [];
+-  try {
+-    for (const linea of lineas) {
+-      inventario.reservar(linea.producto.id, linea.cantidad);
+-      reservadas.push(linea);
+-    }
+-  } catch (error) {
+-    for (const linea of reservadas) {
+-      inventario.liberar(linea.producto.id, linea.cantidad);
+-    }
+-    throw error;
++  for (const linea of lineas) {
++    inventario.reservar(linea.producto.id, linea.cantidad);
+   }
+ }

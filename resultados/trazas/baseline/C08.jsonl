@@ -1,0 +1,11 @@
+{"t_ms": 0, "tipo": "inicio", "sistema": "baseline", "parche": "C08.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 1083, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1585, "tokens_salida": 48, "latencia_ms": 1059, "error": null}
+{"t_ms": 1084, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/carrito/carrito.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1279, "latencia_ms": 0, "error": null}
+{"t_ms": 1241, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se calculan los importes de dinero y recargos en el carrito"}, "tamano_resultado": 1715, "latencia_ms": 157, "error": null}
+{"t_ms": 1800, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2532, "tokens_salida": 27, "latencia_ms": 558, "error": null}
+{"t_ms": 1801, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/utils/dinero.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 828, "latencia_ms": 0, "error": null}
+{"t_ms": 2401, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2828, "tokens_salida": 48, "latencia_ms": 599, "error": null}
+{"t_ms": 2403, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "grep_repo", "argumentos": {"patron": "PORCENTAJE", "carpeta": ""}, "tamano_resultado": 606, "latencia_ms": 2, "error": null}
+{"t_ms": 6472, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3059, "tokens_salida": 373, "latencia_ms": 4068, "error": null}
+{"t_ms": 9604, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3097, "tokens_salida": 245, "latencia_ms": 3131, "error": null}
+{"t_ms": 9606, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 13101, "tokens_salida": 741}, "uso_por_agente": {"reviewer_unico": {"llamadas": 5, "tokens_entrada": 13101, "tokens_salida": 741}}}

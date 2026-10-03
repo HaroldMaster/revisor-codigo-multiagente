@@ -1,0 +1,15 @@
+caso,demostrado,detalle,checks_en_verde
+C01,True,el check tests falla con el parche,False
+C02,True,el check tests falla con el parche,False
+C03,True,el test oculto falla con el parche,True
+C04,True,el test oculto falla con el parche y pasa sin él,True
+C05,True,el check lint falla con el parche,False
+C06,True,el patrón está en el archivo modificado,True
+C07,True,el test oculto falla con el parche,True
+C08,True,el patrón está en el archivo modificado,True
+C09,True,formatearCantidad aparece 1 vez en todo el código,True
+C10,True,el patrón está en el archivo modificado,True
+C11,True,el test oculto falla con el parche y pasa sin él,True
+N01,True,"lint, tipos y tests pasan",True
+N02,True,"lint, tipos y tests pasan",True
+A01,True,el test oculto falla con el parche y pasa sin él,True

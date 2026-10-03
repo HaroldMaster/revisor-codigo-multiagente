@@ -1,0 +1,61 @@
+Descripción del cambio: Añade participacionPorLinea: qué porcentaje del subtotal aporta cada línea del carrito.
+
+diff --git a/src/index.ts b/src/index.ts
+index 023b38d..c0cf419 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -8,6 +8,6 @@ export {
+   ErrorValidacion,
+ } from './errores';
+ export { Inventario } from './inventario/inventario';
+-export { IMPUESTO_PORCENTAJE, crearPedido } from './pedidos/pedidos';
++export { IMPUESTO_PORCENTAJE, crearPedido, participacionPorLinea } from './pedidos/pedidos';
+ export type { Cupon, CuponFijo, CuponPorcentaje, LineaCarrito, Pedido, Producto } from './tipos';
+ export { formatearPrecio } from './utils/dinero';
+diff --git a/src/pedidos/pedidos.test.ts b/src/pedidos/pedidos.test.ts
+index 1ec4104..aaa9073 100644
+--- a/src/pedidos/pedidos.test.ts
++++ b/src/pedidos/pedidos.test.ts
+@@ -3,7 +3,7 @@ import { Carrito } from '../carrito/carrito';
+ import { ErrorStockInsuficiente, ErrorValidacion } from '../errores';
+ import { Inventario } from '../inventario/inventario';
+ import type { Cupon, Producto } from '../tipos';
+-import { crearPedido } from './pedidos';
++import { crearPedido, participacionPorLinea } from './pedidos';
+ 
+ const teclado: Producto = { id: 'teclado', nombre: 'Teclado', precioCentavos: 2500 };
+ const raton: Producto = { id: 'raton', nombre: 'Ratón', precioCentavos: 1200 };
+@@ -66,3 +66,16 @@ describe('crearPedido', () => {
+     expect(inventario.disponible('raton')).toBe(2);
+   });
+ });
++
++describe('participacionPorLinea', () => {
++  it('da el porcentaje del subtotal que aporta cada línea', () => {
++    const carrito = new Carrito();
++    carrito.agregar(teclado, 2);
++    carrito.agregar(raton, 3);
++    expect(participacionPorLinea(carrito)).toEqual([58, 42]);
++  });
++
++  it('devuelve una lista vacía con el carrito vacío', () => {
++    expect(participacionPorLinea(new Carrito())).toEqual([]);
++  });
++});
+diff --git a/src/pedidos/pedidos.ts b/src/pedidos/pedidos.ts
+index 61e6d75..5151d54 100644
+--- a/src/pedidos/pedidos.ts
++++ b/src/pedidos/pedidos.ts
+@@ -48,3 +48,12 @@ function reservarTodo(lineas: readonly LineaCarrito[], inventario: Inventario):
+     throw error;
+   }
+ }
++
++const PORCENTAJE_TOTAL = 100;
++
++export function participacionPorLinea(carrito: Carrito): number[] {
++  return carrito.lineas().map((linea) => {
++    const importeCentavos = linea.producto.precioCentavos * linea.cantidad;
++    return Math.round((importeCentavos * PORCENTAJE_TOTAL) / carrito.subtotalCentavos());
++  });
++}

@@ -1,0 +1,7 @@
+{"t_ms": 28, "tipo": "inicio", "sistema": "baseline", "parche": "C01.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 1867, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1425, "tokens_salida": 83, "latencia_ms": 1361, "error": null}
+{"t_ms": 1869, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/pedidos/pedidos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1761, "latencia_ms": 0, "error": null}
+{"t_ms": 2085, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "sobre qué base se calcula el impuesto cuando hay un cupón de descuento"}, "tamano_resultado": 1797, "latencia_ms": 216, "error": null}
+{"t_ms": 5866, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2571, "tokens_salida": 256, "latencia_ms": 3780, "error": null}
+{"t_ms": 7281, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2547, "tokens_salida": 137, "latencia_ms": 1412, "error": null}
+{"t_ms": 7283, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 6543, "tokens_salida": 476}, "uso_por_agente": {"reviewer_unico": {"llamadas": 3, "tokens_entrada": 6543, "tokens_salida": 476}}}

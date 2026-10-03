@@ -2,9 +2,7 @@
 
 import argparse
 
-from .baseline import RevisorUnico
-
-SISTEMAS = {"baseline": RevisorUnico}
+from .sistemas import SISTEMAS
 
 
 def main() -> None:

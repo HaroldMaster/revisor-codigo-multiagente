@@ -1,0 +1,9 @@
+{"t_ms": 0, "tipo": "inicio", "sistema": "baseline", "parche": "C06.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 609, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1624, "tokens_salida": 49, "latencia_ms": 587, "error": null}
+{"t_ms": 610, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/inventario/inventario.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 2226, "latencia_ms": 0, "error": null}
+{"t_ms": 793, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se manejan los productos desconocidos y los valores de retorno en el inventario"}, "tamano_resultado": 3264, "latencia_ms": 183, "error": null}
+{"t_ms": 2297, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3231, "tokens_salida": 119, "latencia_ms": 1504, "error": null}
+{"t_ms": 2449, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se señalan los errores y valores inválidos, uso de códigos centinela como -1 frente a lanzar excepciones"}, "tamano_resultado": 2121, "latencia_ms": 150, "error": null}
+{"t_ms": 8274, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3945, "tokens_salida": 435, "latencia_ms": 5825, "error": null}
+{"t_ms": 12575, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 4079, "tokens_salida": 378, "latencia_ms": 4298, "error": null}
+{"t_ms": 12576, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 12879, "tokens_salida": 981}, "uso_por_agente": {"reviewer_unico": {"llamadas": 4, "tokens_entrada": 12879, "tokens_salida": 981}}}

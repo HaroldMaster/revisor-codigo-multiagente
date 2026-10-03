@@ -1,0 +1,10 @@
+{"t_ms": 0, "tipo": "inicio", "sistema": "baseline", "parche": "C09.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 550, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1372, "tokens_salida": 46, "latencia_ms": 529, "error": null}
+{"t_ms": 551, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/utils/dinero.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 936, "latencia_ms": 0, "error": null}
+{"t_ms": 698, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se formatean cantidades y unidades en el resumen de pedido"}, "tamano_resultado": 1430, "latencia_ms": 147, "error": null}
+{"t_ms": 1579, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2172, "tokens_salida": 73, "latencia_ms": 880, "error": null}
+{"t_ms": 1587, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "grep_repo", "argumentos": {"patron": "formatearCantidad|u\\.", "carpeta": ""}, "tamano_resultado": 150, "latencia_ms": 7, "error": null}
+{"t_ms": 1721, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "dónde deben vivir las utilidades de formato y presentación de texto para la UI"}, "tamano_resultado": 4395, "latencia_ms": 133, "error": null}
+{"t_ms": 4946, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3363, "tokens_salida": 240, "latencia_ms": 3225, "error": null}
+{"t_ms": 5449, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3257, "tokens_salida": 17, "latencia_ms": 500, "error": null}
+{"t_ms": 5450, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 10164, "tokens_salida": 376}, "uso_por_agente": {"reviewer_unico": {"llamadas": 4, "tokens_entrada": 10164, "tokens_salida": 376}}}

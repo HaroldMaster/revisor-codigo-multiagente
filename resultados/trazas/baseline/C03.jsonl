@@ -1,0 +1,11 @@
+{"t_ms": 26, "tipo": "inicio", "sistema": "baseline", "parche": "C03.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 2083, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1889, "tokens_salida": 107, "latencia_ms": 1587, "error": null}
+{"t_ms": 2085, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/descuentos/descuentos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1845, "latencia_ms": 0, "error": null}
+{"t_ms": 2301, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se calculan los descuentos y los importes de dinero, y qué pruebas deben cubrirlos"}, "tamano_resultado": 1595, "latencia_ms": 215, "error": null}
+{"t_ms": 3842, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3023, "tokens_salida": 92, "latencia_ms": 1540, "error": null}
+{"t_ms": 3845, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "grep_repo", "argumentos": {"patron": "asegurarEntero", "carpeta": ""}, "tamano_resultado": 1445, "latencia_ms": 2, "error": null}
+{"t_ms": 5318, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3454, "tokens_salida": 92, "latencia_ms": 1473, "error": null}
+{"t_ms": 5321, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "grep_repo", "argumentos": {"patron": "descuentoPorVolumen", "carpeta": ""}, "tamano_resultado": 629, "latencia_ms": 2, "error": null}
+{"t_ms": 10012, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3671, "tokens_salida": 442, "latencia_ms": 4690, "error": null}
+{"t_ms": 14059, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3789, "tokens_salida": 397, "latencia_ms": 4045, "error": null}
+{"t_ms": 14060, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 15826, "tokens_salida": 1130}, "uso_por_agente": {"reviewer_unico": {"llamadas": 5, "tokens_entrada": 15826, "tokens_salida": 1130}}}

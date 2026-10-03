@@ -1,0 +1,11 @@
+{"t_ms": 0, "tipo": "inicio", "sistema": "baseline", "parche": "C11.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 1024, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1571, "tokens_salida": 52, "latencia_ms": 1002, "error": null}
+{"t_ms": 1025, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/utils/dinero.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 828, "latencia_ms": 0, "error": null}
+{"t_ms": 1182, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se calculan los importes de dinero y los descuentos, redondeo o truncado"}, "tamano_resultado": 1677, "latencia_ms": 157, "error": null}
+{"t_ms": 2705, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2398, "tokens_salida": 74, "latencia_ms": 1523, "error": null}
+{"t_ms": 2708, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "grep_repo", "argumentos": {"patron": "porcentajeDe\\(", "carpeta": ""}, "tamano_resultado": 510, "latencia_ms": 2, "error": null}
+{"t_ms": 2999, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2591, "tokens_salida": 13, "latencia_ms": 291, "error": null}
+{"t_ms": 3717, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "correr_checks", "argumentos": {"tipo": "tests"}, "tamano_resultado": 1786, "latencia_ms": 717, "error": null}
+{"t_ms": 6393, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3518, "tokens_salida": 206, "latencia_ms": 2676, "error": null}
+{"t_ms": 6890, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3390, "tokens_salida": 17, "latencia_ms": 494, "error": null}
+{"t_ms": 6891, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 13468, "tokens_salida": 362}, "uso_por_agente": {"reviewer_unico": {"llamadas": 5, "tokens_entrada": 13468, "tokens_salida": 362}}}

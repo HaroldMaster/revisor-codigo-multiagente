@@ -1,0 +1,26 @@
+Descripción del cambio: Extrae la comparación con el mínimo de compra a una función con nombre. Sin cambio de comportamiento.
+
+diff --git a/src/descuentos/descuentos.ts b/src/descuentos/descuentos.ts
+index 4ba332e..4d5f040 100644
+--- a/src/descuentos/descuentos.ts
++++ b/src/descuentos/descuentos.ts
+@@ -6,7 +6,7 @@ const PORCENTAJE_MAXIMO = 100;
+ 
+ export function calcularDescuento(subtotalCentavos: number, cupon: Cupon): number {
+   validarCupon(cupon);
+-  if (subtotalCentavos < cupon.minimoCentavos) {
++  if (!alcanzaElMinimo(subtotalCentavos, cupon)) {
+     return 0;
+   }
+   const descuento =
+@@ -29,6 +29,10 @@ export function mejorCupon(subtotalCentavos: number, cupones: readonly Cupon[]):
+   return mejor;
+ }
+ 
++function alcanzaElMinimo(subtotalCentavos: number, cupon: Cupon): boolean {
++  return subtotalCentavos >= cupon.minimoCentavos;
++}
++
+ function validarCupon(cupon: Cupon): void {
+   if (cupon.tipo === 'porcentaje' && (cupon.porcentaje <= 0 || cupon.porcentaje > PORCENTAJE_MAXIMO)) {
+     throw new ErrorCuponInvalido(`El cupón ${cupon.codigo} tiene un porcentaje fuera de 1 a 100`);

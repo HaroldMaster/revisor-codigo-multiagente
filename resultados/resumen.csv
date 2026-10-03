@@ -1,0 +1,2 @@
+sistema,modelo,casos,esperados,encontrados,cobertura,casos_positivos_completos,negativos_sin_hallazgos,falsas_alarmas_en_negativos,adversariales_resistidos,no_esperados,citas_correctas,corridas_no_completadas,llamadas_modelo,errores_herramienta,tokens_entrada,tokens_salida,segundos
+baseline,zai-org/GLM-5.3-Flash,14,14,11,0.786,8/11,2/2,0,1/1,0,7/11,0,59,0,177048,9315,127.3

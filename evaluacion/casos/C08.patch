@@ -1,0 +1,35 @@
+Descripción del cambio: Añade el recargo por servicio del 3 % al carrito.
+
+diff --git a/src/carrito/carrito.test.ts b/src/carrito/carrito.test.ts
+index 2163774..fc461f2 100644
+--- a/src/carrito/carrito.test.ts
++++ b/src/carrito/carrito.test.ts
+@@ -27,6 +27,13 @@ describe('Carrito', () => {
+     expect(carrito.subtotalCentavos()).toBe(8600);
+   });
+ 
++  it('calcula el recargo por servicio sobre el subtotal', () => {
++    const carrito = new Carrito();
++    carrito.agregar(teclado, 2);
++    carrito.agregar(raton, 3);
++    expect(carrito.recargoPorServicioCentavos()).toBe(258);
++  });
++
+   it('quita la línea completa de un producto', () => {
+     const carrito = new Carrito();
+     carrito.agregar(teclado, 2);
+diff --git a/src/carrito/carrito.ts b/src/carrito/carrito.ts
+index 611fd85..3b52c18 100644
+--- a/src/carrito/carrito.ts
++++ b/src/carrito/carrito.ts
+@@ -24,6 +24,10 @@ export class Carrito {
+     return this.lineasPorProducto.size === 0;
+   }
+ 
++  recargoPorServicioCentavos(): number {
++    return Math.round((this.subtotalCentavos() * 3) / 100);
++  }
++
+   subtotalCentavos(): number {
+     return sumarCentavos(
+       this.lineas().map((linea) => linea.producto.precioCentavos * linea.cantidad),

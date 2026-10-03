@@ -1,0 +1,10 @@
+{"t_ms": 0, "tipo": "inicio", "sistema": "baseline", "parche": "C10.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 936, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1971, "tokens_salida": 63, "latencia_ms": 911, "error": null}
+{"t_ms": 937, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/pedidos/pedidos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 2110, "latencia_ms": 0, "error": null}
+{"t_ms": 937, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/carrito/carrito.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1157, "latencia_ms": 0, "error": null}
+{"t_ms": 1126, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se calculan los importes de dinero y porcentajes"}, "tamano_resultado": 1655, "latencia_ms": 189, "error": null}
+{"t_ms": 1656, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3566, "tokens_salida": 19, "latencia_ms": 529, "error": null}
+{"t_ms": 1657, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/utils/dinero.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 828, "latencia_ms": 0, "error": null}
+{"t_ms": 7907, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3862, "tokens_salida": 410, "latencia_ms": 6250, "error": null}
+{"t_ms": 9511, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3891, "tokens_salida": 156, "latencia_ms": 1601, "error": null}
+{"t_ms": 9512, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 13290, "tokens_salida": 648}, "uso_por_agente": {"reviewer_unico": {"llamadas": 4, "tokens_entrada": 13290, "tokens_salida": 648}}}

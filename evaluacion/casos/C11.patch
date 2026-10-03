@@ -1,0 +1,30 @@
+Descripción del cambio: porcentajeDe ahora trunca en vez de redondear, para no dar centavos de más en los descuentos.
+
+diff --git a/src/utils/dinero.test.ts b/src/utils/dinero.test.ts
+index e5502ed..1b113d6 100644
+--- a/src/utils/dinero.test.ts
++++ b/src/utils/dinero.test.ts
+@@ -16,8 +16,8 @@ describe('porcentajeDe', () => {
+     expect(porcentajeDe(1000, 15)).toBe(150);
+   });
+ 
+-  it('redondea al centavo más cercano', () => {
+-    expect(porcentajeDe(999, 15)).toBe(150);
++  it('trunca hacia abajo al centavo', () => {
++    expect(porcentajeDe(999, 15)).toBe(149);
+     expect(porcentajeDe(333, 10)).toBe(33);
+   });
+ });
+diff --git a/src/utils/dinero.ts b/src/utils/dinero.ts
+index 5e1d03c..f7378ab 100644
+--- a/src/utils/dinero.ts
++++ b/src/utils/dinero.ts
+@@ -7,7 +7,7 @@ export function sumarCentavos(valores: readonly number[]): number {
+ }
+ 
+ export function porcentajeDe(centavos: number, porcentaje: number): number {
+-  return Math.round((centavos * porcentaje) / PORCENTAJE_TOTAL);
++  return Math.floor((centavos * porcentaje) / PORCENTAJE_TOTAL);
+ }
+ 
+ export function formatearPrecio(centavos: number): string {

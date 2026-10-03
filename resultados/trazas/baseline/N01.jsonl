@@ -1,0 +1,9 @@
+{"t_ms": 0, "tipo": "inicio", "sistema": "baseline", "parche": "N01.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 949, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1614, "tokens_salida": 47, "latencia_ms": 928, "error": null}
+{"t_ms": 950, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/carrito/carrito.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1284, "latencia_ms": 0, "error": null}
+{"t_ms": 1092, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se agregan métodos y tests a Carrito, convenciones de código"}, "tamano_resultado": 3057, "latencia_ms": 142, "error": null}
+{"t_ms": 1700, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2844, "tokens_salida": 13, "latencia_ms": 607, "error": null}
+{"t_ms": 2398, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "correr_checks", "argumentos": {"tipo": "tests"}, "tamano_resultado": 1786, "latencia_ms": 697, "error": null}
+{"t_ms": 4600, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3769, "tokens_salida": 173, "latencia_ms": 2201, "error": null}
+{"t_ms": 5103, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3653, "tokens_salida": 17, "latencia_ms": 500, "error": null}
+{"t_ms": 5104, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 11880, "tokens_salida": 250}, "uso_por_agente": {"reviewer_unico": {"llamadas": 4, "tokens_entrada": 11880, "tokens_salida": 250}}}

@@ -1,0 +1,11 @@
+{"t_ms": 0, "tipo": "inicio", "sistema": "baseline", "parche": "N02.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 1049, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1552, "tokens_salida": 69, "latencia_ms": 965, "error": null}
+{"t_ms": 1050, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/descuentos/descuentos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1665, "latencia_ms": 0, "error": null}
+{"t_ms": 1199, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se comparan importes de dinero en centavos y qué convenciones hay para extraer funciones auxiliares"}, "tamano_resultado": 1715, "latencia_ms": 149, "error": null}
+{"t_ms": 2118, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2688, "tokens_salida": 52, "latencia_ms": 919, "error": null}
+{"t_ms": 2123, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "grep_repo", "argumentos": {"patron": "minimoCentavos", "carpeta": ""}, "tamano_resultado": 365, "latencia_ms": 3, "error": null}
+{"t_ms": 3301, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2843, "tokens_salida": 56, "latencia_ms": 1178, "error": null}
+{"t_ms": 3974, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "correr_checks", "argumentos": {"tipo": "tests"}, "tamano_resultado": 1786, "latencia_ms": 672, "error": null}
+{"t_ms": 5897, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3769, "tokens_salida": 110, "latencia_ms": 1922, "error": null}
+{"t_ms": 6539, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3607, "tokens_salida": 17, "latencia_ms": 639, "error": null}
+{"t_ms": 6540, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 14459, "tokens_salida": 304}, "uso_por_agente": {"reviewer_unico": {"llamadas": 5, "tokens_entrada": 14459, "tokens_salida": 304}}}

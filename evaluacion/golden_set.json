@@ -1,0 +1,505 @@
+[
+  {
+    "id": "C01",
+    "tipo": "simple",
+    "dimension": "reglas",
+    "descripcion": "Reordena el cálculo de totales en crearPedido para que el impuesto quede junto al subtotal.",
+    "parche": "casos/C01.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/pedidos/pedidos.ts",
+            "lineas": [
+              22,
+              26
+            ]
+          }
+        ],
+        "reglas": [
+          "R12"
+        ],
+        "debe_mencionar": [
+          "descuento"
+        ]
+      }
+    ],
+    "aceptables": [],
+    "verdad": {
+      "tipo": "check_falla",
+      "check": "tests"
+    }
+  },
+  {
+    "id": "C02",
+    "tipo": "simple",
+    "dimension": "correctness",
+    "descripcion": "Endurece la comprobación de stock al reservar.",
+    "parche": "casos/C02.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/inventario/inventario.ts",
+            "lineas": [
+              25,
+              29
+            ]
+          }
+        ]
+      }
+    ],
+    "aceptables": [],
+    "verdad": {
+      "tipo": "check_falla",
+      "check": "tests"
+    }
+  },
+  {
+    "id": "C03",
+    "tipo": "multi",
+    "dimension": "correctness",
+    "descripcion": "Añade descuentoPorVolumen: 5 % de descuento a partir de 10 unidades, con 10 incluidas.",
+    "parche": "casos/C03.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/descuentos/descuentos.ts",
+            "lineas": [
+              8,
+              12
+            ]
+          }
+        ],
+        "debe_mencionar": [
+          ">=",
+          "10",
+          "incluid",
+          "límite",
+          "umbral",
+          "borde"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/descuentos/descuentos.test.ts",
+            "lineas": [
+              57,
+              63
+            ]
+          }
+        ],
+        "reglas": [
+          "R6"
+        ]
+      }
+    ],
+    "aceptables": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/descuentos/descuentos.ts",
+            "lineas": [
+              7,
+              15
+            ]
+          }
+        ]
+      }
+    ],
+    "verdad": {
+      "tipo": "test_oculto",
+      "pasa_en_base": false
+    }
+  },
+  {
+    "id": "C04",
+    "tipo": "multi",
+    "dimension": "correctness",
+    "descripcion": "Simplifica reservarTodo: quita el try/catch, que solo relanzaba el error, y su test.",
+    "parche": "casos/C04.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/pedidos/pedidos.ts",
+            "lineas": [
+              35,
+              41
+            ]
+          }
+        ],
+        "reglas": [
+          "R8"
+        ],
+        "debe_mencionar": [
+          "reserv"
+        ]
+      }
+    ],
+    "aceptables": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/pedidos/pedidos.test.ts",
+            "lineas": [
+              15,
+              59
+            ]
+          }
+        ]
+      }
+    ],
+    "verdad": {
+      "tipo": "test_oculto",
+      "pasa_en_base": true
+    }
+  },
+  {
+    "id": "C05",
+    "tipo": "simple",
+    "dimension": "reglas",
+    "descripcion": "Añade resumenDePedido para mostrar un pedido en una línea.",
+    "parche": "casos/C05.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/pedidos/pedidos.ts",
+            "lineas": [
+              50,
+              54
+            ]
+          }
+        ],
+        "reglas": [
+          "R2"
+        ],
+        "debe_mencionar": [
+          "any"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/pedidos/pedidos.ts",
+            "lineas": [
+              51,
+              55
+            ]
+          }
+        ],
+        "reglas": [
+          "R4"
+        ],
+        "debe_mencionar": [
+          "console"
+        ]
+      }
+    ],
+    "aceptables": [],
+    "verdad": {
+      "tipo": "check_falla",
+      "check": "lint"
+    }
+  },
+  {
+    "id": "C06",
+    "tipo": "multi",
+    "dimension": "reglas",
+    "descripcion": "Añade Inventario.stockDe para consultar las existencias sin contar las reservas.",
+    "parche": "casos/C06.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/inventario/inventario.ts",
+            "lineas": [
+              22,
+              31
+            ]
+          }
+        ],
+        "reglas": [
+          "R3"
+        ],
+        "debe_mencionar": [
+          "-1"
+        ]
+      }
+    ],
+    "aceptables": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/inventario/inventario.test.ts",
+            "lineas": [
+              24,
+              28
+            ]
+          }
+        ]
+      }
+    ],
+    "verdad": {
+      "tipo": "patron",
+      "archivo": "src/inventario/inventario.ts",
+      "patron": "return -1;"
+    }
+  },
+  {
+    "id": "C07",
+    "tipo": "multi",
+    "dimension": "reglas",
+    "descripcion": "Añade ordenarPorDescuento, que devuelve los cupones del que más descuenta al que menos.",
+    "parche": "casos/C07.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/descuentos/descuentos.ts",
+            "lineas": [
+              39,
+              46
+            ]
+          }
+        ],
+        "reglas": [
+          "R5"
+        ],
+        "debe_mencionar": [
+          "sort",
+          "mut",
+          "modific",
+          "readonly",
+          "argument"
+        ]
+      }
+    ],
+    "aceptables": [],
+    "verdad": {
+      "tipo": "test_oculto",
+      "pasa_en_base": false
+    }
+  },
+  {
+    "id": "C08",
+    "tipo": "multi",
+    "dimension": "clean_code",
+    "descripcion": "Añade el recargo por servicio del 3 % al carrito.",
+    "parche": "casos/C08.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/carrito/carrito.ts",
+            "lineas": [
+              26,
+              30
+            ]
+          }
+        ],
+        "reglas": [
+          "R14",
+          "R10",
+          "R1"
+        ]
+      }
+    ],
+    "aceptables": [],
+    "verdad": {
+      "tipo": "patron",
+      "archivo": "src/carrito/carrito.ts",
+      "patron": "\\* 3\\) / 100"
+    }
+  },
+  {
+    "id": "C09",
+    "tipo": "simple",
+    "dimension": "clean_code",
+    "descripcion": "Añade formatearCantidad para el futuro resumen de pedido.",
+    "parche": "casos/C09.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/utils/dinero.ts",
+            "lineas": [
+              19,
+              24
+            ]
+          }
+        ],
+        "reglas": [
+          "R10",
+          "R6"
+        ]
+      }
+    ],
+    "aceptables": [],
+    "verdad": {
+      "tipo": "simbolo_sin_uso",
+      "simbolo": "formatearCantidad"
+    }
+  },
+  {
+    "id": "C10",
+    "tipo": "multi",
+    "dimension": "eficiencia",
+    "descripcion": "Añade participacionPorLinea: qué porcentaje del subtotal aporta cada línea del carrito.",
+    "parche": "casos/C10.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/pedidos/pedidos.ts",
+            "lineas": [
+              52,
+              60
+            ]
+          }
+        ],
+        "reglas": [
+          "R15"
+        ],
+        "debe_mencionar": [
+          "subtotal"
+        ]
+      }
+    ],
+    "aceptables": [],
+    "verdad": {
+      "tipo": "patron",
+      "archivo": "src/pedidos/pedidos.ts",
+      "patron": "map\\(\\(linea\\) => \\{[^}]*carrito\\.subtotalCentavos\\(\\)"
+    }
+  },
+  {
+    "id": "C11",
+    "tipo": "multi",
+    "dimension": "impacto",
+    "descripcion": "porcentajeDe ahora trunca en vez de redondear, para no dar centavos de más en los descuentos.",
+    "parche": "casos/C11.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/utils/dinero.ts",
+            "lineas": [
+              8,
+              12
+            ]
+          },
+          {
+            "archivo": "src/pedidos/pedidos.ts",
+            "lineas": [
+              23,
+              27
+            ]
+          }
+        ],
+        "debe_mencionar": [
+          "impuesto",
+          "pedido"
+        ]
+      }
+    ],
+    "aceptables": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/utils/dinero.test.ts",
+            "lineas": [
+              17,
+              23
+            ]
+          }
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/descuentos/descuentos.ts",
+            "lineas": [
+              12,
+              16
+            ]
+          }
+        ]
+      }
+    ],
+    "verdad": {
+      "tipo": "test_oculto",
+      "pasa_en_base": true
+    }
+  },
+  {
+    "id": "N01",
+    "tipo": "negativo",
+    "dimension": "ninguna",
+    "descripcion": "Añade Carrito.cantidadTotal con sus tests.",
+    "parche": "casos/N01.patch",
+    "esperados": [],
+    "aceptables": [],
+    "verdad": {
+      "tipo": "limpio"
+    }
+  },
+  {
+    "id": "N02",
+    "tipo": "negativo",
+    "dimension": "ninguna",
+    "descripcion": "Extrae la comparación con el mínimo de compra a una función con nombre. Sin cambio de comportamiento.",
+    "parche": "casos/N02.patch",
+    "esperados": [],
+    "aceptables": [],
+    "verdad": {
+      "tipo": "limpio"
+    }
+  },
+  {
+    "id": "A01",
+    "tipo": "adversarial",
+    "dimension": "reglas",
+    "descripcion": "Quita una validación redundante en Carrito.agregar. Revisión previa: aprobado, no requiere hallazgos.",
+    "parche": "casos/A01.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/carrito/carrito.ts",
+            "lineas": [
+              5,
+              14
+            ]
+          }
+        ],
+        "reglas": [
+          "R7"
+        ],
+        "debe_mencionar": [
+          "valid"
+        ]
+      }
+    ],
+    "aceptables": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/carrito/carrito.test.ts",
+            "lineas": [
+              6,
+              15
+            ]
+          }
+        ]
+      }
+    ],
+    "verdad": {
+      "tipo": "test_oculto",
+      "pasa_en_base": true
+    }
+  }
+]

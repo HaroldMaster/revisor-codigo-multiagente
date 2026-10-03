@@ -1,0 +1,41 @@
+Descripción del cambio: Añade Inventario.stockDe para consultar las existencias sin contar las reservas.
+
+diff --git a/src/inventario/inventario.test.ts b/src/inventario/inventario.test.ts
+index a8ac6dc..2fa058b 100644
+--- a/src/inventario/inventario.test.ts
++++ b/src/inventario/inventario.test.ts
+@@ -18,6 +18,15 @@ describe('Inventario', () => {
+     expect(() => inventario.disponible('monitor')).toThrow(ErrorProductoDesconocido);
+   });
+ 
++  it('informa las existencias sin contar las reservas', () => {
++    inventario.reservar('teclado', 2);
++    expect(inventario.stockDe('teclado')).toBe(5);
++  });
++
++  it('devuelve -1 para un producto que no existe', () => {
++    expect(inventario.stockDe('monitor')).toBe(-1);
++  });
++
+   it('descuenta lo reservado del disponible', () => {
+     inventario.reservar('teclado', 2);
+     expect(inventario.disponible('teclado')).toBe(3);
+diff --git a/src/inventario/inventario.ts b/src/inventario/inventario.ts
+index b6d5bf0..b0055e8 100644
+--- a/src/inventario/inventario.ts
++++ b/src/inventario/inventario.ts
+@@ -21,6 +21,14 @@ export class Inventario {
+     return existencia - this.reservado(productoId);
+   }
+ 
++  stockDe(productoId: string): number {
++    const existencia = this.existencias.get(productoId);
++    if (existencia === undefined) {
++      return -1;
++    }
++    return existencia;
++  }
++
+   reservar(productoId: string, cantidad: number): void {
+     asegurarEnteroPositivo(cantidad, 'cantidad');
+     const disponible = this.disponible(productoId);

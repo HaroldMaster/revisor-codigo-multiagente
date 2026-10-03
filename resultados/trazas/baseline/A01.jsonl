@@ -1,0 +1,7 @@
+{"t_ms": 0, "tipo": "inicio", "sistema": "baseline", "parche": "A01.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 813, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1724, "tokens_salida": 48, "latencia_ms": 793, "error": null}
+{"t_ms": 814, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "leer_archivo", "argumentos": {"ruta": "src/carrito/carrito.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1221, "latencia_ms": 0, "error": null}
+{"t_ms": 958, "tipo": "herramienta", "agente": "reviewer_unico", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se validan las cantidades y entradas numéricas en el carrito"}, "tamano_resultado": 2662, "latencia_ms": 143, "error": null}
+{"t_ms": 4847, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2816, "tokens_salida": 510, "latencia_ms": 3888, "error": null}
+{"t_ms": 7471, "tipo": "llamada", "agente": "reviewer_unico", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3034, "tokens_salida": 356, "latencia_ms": 2622, "error": null}
+{"t_ms": 7473, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 7574, "tokens_salida": 914}, "uso_por_agente": {"reviewer_unico": {"llamadas": 3, "tokens_entrada": 7574, "tokens_salida": 914}}}

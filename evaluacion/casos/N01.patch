@@ -1,0 +1,40 @@
+Descripción del cambio: Añade Carrito.cantidadTotal con sus tests.
+
+diff --git a/src/carrito/carrito.test.ts b/src/carrito/carrito.test.ts
+index 2163774..28ed480 100644
+--- a/src/carrito/carrito.test.ts
++++ b/src/carrito/carrito.test.ts
+@@ -27,6 +27,18 @@ describe('Carrito', () => {
+     expect(carrito.subtotalCentavos()).toBe(8600);
+   });
+ 
++  it('suma las cantidades de todas las líneas', () => {
++    const carrito = new Carrito();
++    carrito.agregar(teclado, 2);
++    carrito.agregar(raton, 3);
++    carrito.agregar(teclado, 1);
++    expect(carrito.cantidadTotal()).toBe(6);
++  });
++
++  it('tiene cantidad total cero cuando está vacío', () => {
++    expect(new Carrito().cantidadTotal()).toBe(0);
++  });
++
+   it('quita la línea completa de un producto', () => {
+     const carrito = new Carrito();
+     carrito.agregar(teclado, 2);
+diff --git a/src/carrito/carrito.ts b/src/carrito/carrito.ts
+index 611fd85..0f54992 100644
+--- a/src/carrito/carrito.ts
++++ b/src/carrito/carrito.ts
+@@ -24,6 +24,10 @@ export class Carrito {
+     return this.lineasPorProducto.size === 0;
+   }
+ 
++  cantidadTotal(): number {
++    return this.lineas().reduce((total, linea) => total + linea.cantidad, 0);
++  }
++
+   subtotalCentavos(): number {
+     return sumarCentavos(
+       this.lineas().map((linea) => linea.producto.precioCentavos * linea.cantidad),
