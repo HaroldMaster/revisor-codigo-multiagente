@@ -1,0 +1,16 @@
+diff --git a/src/descuentos/descuentos.ts b/src/descuentos/descuentos.ts
+index 6180354..8482816 100644
+--- a/src/descuentos/descuentos.ts
++++ b/src/descuentos/descuentos.ts
+@@ -7,10 +7,7 @@ const CANTIDAD_MINIMA_VOLUMEN = 10;
+ const PORCENTAJE_VOLUMEN = 5;
+ 
+ export function descuentoPorVolumen(cantidadTotal: number, subtotalCentavos: number): number {
+-  if (cantidadTotal > CANTIDAD_MINIMA_VOLUMEN) {
+-    return porcentajeDe(subtotalCentavos, PORCENTAJE_VOLUMEN);
+-  }
+-  return 0;
++  return cantidadTotal * subtotalCentavos * PORCENTAJE_VOLUMEN * CANTIDAD_MINIMA_VOLUMEN;
+ }
+ 
+ export function calcularDescuento(subtotalCentavos: number, cupon: Cupon): number {

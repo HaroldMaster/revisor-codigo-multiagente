@@ -1,0 +1,14 @@
+diff --git a/src/pedidos/pedidos.ts b/src/pedidos/pedidos.ts
+index 61e6d75..5af94f5 100644
+--- a/src/pedidos/pedidos.ts
++++ b/src/pedidos/pedidos.ts
+@@ -21,8 +21,8 @@ export function crearPedido(
+ 
+   const subtotalCentavos = carrito.subtotalCentavos();
+   const descuentoCentavos = cupon ? calcularDescuento(subtotalCentavos, cupon) : 0;
++  const impuestoCentavos = Math.round(subtotalCentavos * 0.15);
+   const baseCentavos = subtotalCentavos - descuentoCentavos;
+-  const impuestoCentavos = porcentajeDe(baseCentavos, IMPUESTO_PORCENTAJE);
+ 
+   return {
+     id,

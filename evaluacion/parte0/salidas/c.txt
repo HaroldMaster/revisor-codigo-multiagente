@@ -1,0 +1,14 @@
+1) El revisor ingenuo: mira el código de salida
+    lint   código de salida 0
+    tipos  código de salida 0
+    tests  código de salida 0
+    veredicto ingenuo: APROBADO
+
+2) Comprobación estática: qué afirma el test que llegó con el cambio
+    afirmaciones nuevas: ['toBeDefined', 'not.toThrow']
+    que no comprueban ningún valor: 2 de 2
+    veredicto: RECHAZADO
+
+3) Comprobación por mutación: se rompe la función a propósito y se corren los tests
+    tests con la función devolviendo un valor absurdo: código de salida 0
+    veredicto: RECHAZADO, los tests no detectan el cambio

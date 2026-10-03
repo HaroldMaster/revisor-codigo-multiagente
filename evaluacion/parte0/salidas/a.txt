@@ -1,0 +1,46 @@
+================ razonamiento: low
+modelo: zai-org/GLM-5.3-Flash
+hallazgos devueltos: 0
+
+
+citas comprobadas: 0 · falsas: 0
+excepciones: 0 · el modelo respondió con normalidad y el formato era válido
+tokens: {'tokens_entrada': 628, 'tokens_salida': 72}
+
+================ razonamiento: high
+modelo: zai-org/GLM-5.3-Flash
+hallazgos devueltos: 3
+
+--- hallazgo 1: src/pedidos/pedidos.ts:24  regla 'money-no-magic-numbers'
+    evidencia:   const impuestoCentavos = Math.round(subtotalCentavos * 0.15);
+    texto regla: Los cálculos monetarios no deben usar números mágicos: todo porcentaje o tasa debe definirse como un
+    [ok] el archivo existe
+    [ok] la línea citada contiene esa evidencia
+    [FALSO] la regla existe con ese id
+    [FALSO] el texto de la regla es literal
+    [FALSO] existe el archivo afectado src/pedidos/impuestos.ts
+    [ok] existe el archivo afectado src/pedidos/pedidos.test.ts
+--- hallazgo 2: src/pedidos/pedidos.ts:24  regla 'money-use-shared-helpers'
+    evidencia:   const impuestoCentavos = Math.round(subtotalCentavos * 0.15);
+    texto regla: Los cálculos de dinero (porcentajes, redondeos) deben realizarse con los helpers compartidos del dom
+    [ok] el archivo existe
+    [ok] la línea citada contiene esa evidencia
+    [FALSO] la regla existe con ese id
+    [FALSO] el texto de la regla es literal
+    [FALSO] existe el archivo afectado src/pedidos/impuestos.ts
+    [ok] existe el archivo afectado src/pedidos/pedidos.test.ts
+    [FALSO] existe el archivo afectado src/facturacion/facturacion.ts
+--- hallazgo 3: src/pedidos/pedidos.ts:24  regla 'tax-base-after-discount'
+    evidencia:   const impuestoCentavos = Math.round(subtotalCentavos * 0.15);
+    texto regla: El impuesto debe calcularse sobre la base imponible, es decir, el subtotal menos los descuentos apli
+    [ok] el archivo existe
+    [ok] la línea citada contiene esa evidencia
+    [FALSO] la regla existe con ese id
+    [FALSO] el texto de la regla es literal
+    [ok] existe el archivo afectado src/pedidos/pedidos.test.ts
+    [FALSO] existe el archivo afectado src/facturacion/facturacion.ts
+
+citas comprobadas: 19 · falsas: 10
+excepciones: 0 · el modelo respondió con normalidad y el formato era válido
+tokens: {'tokens_entrada': 628, 'tokens_salida': 833}
+

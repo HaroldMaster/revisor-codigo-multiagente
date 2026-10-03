@@ -1,0 +1,15 @@
+fragmentos indexados: 19 (solo reglas del repo, TF-IDF, sin modelo)
+reglas que aplican al cambio: ['R12', 'R14']
+
+consulta con el código del diff: 'const impuestoCentavos = Math.round(subtotalCentavos * 0.15);'
+    R9         similitud 0.000
+    R8         similitud 0.000
+    R7         similitud 0.000
+    reglas correctas recuperadas: 0 de 2
+
+consulta con la intención: 'en qué orden se calculan el impuesto y el descuento, y con qué porcentaje'
+    R12        similitud 0.568
+    R14        similitud 0.271
+    R1         similitud 0.228
+    reglas correctas recuperadas: 2 de 2
+

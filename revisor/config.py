@@ -72,6 +72,10 @@ def get_llm(rol: str = "default"):
         return ChatAnthropic(model=config.modelo, api_key=config.api_key, max_tokens=max_tokens)
     from langchain_openai import ChatOpenAI
 
+    # El modelo de la H200 razona siempre y lo cobra del cupo de salida: sin
+    # acotarlo puede gastar todo en razonar y devolver una respuesta vacía.
+    esfuerzo = os.getenv("LLM_REASONING_EFFORT", "")
+    extras = {"reasoning_effort": esfuerzo} if esfuerzo else {}
     return ChatOpenAI(
         model=config.modelo,
         base_url=config.base_url,
@@ -79,15 +83,16 @@ def get_llm(rol: str = "default"):
         max_tokens=max_tokens,
         temperature=0,
         timeout=180,
+        **extras,
     )
 
 
 def estructurado(llm, esquema, rol: str = "default"):
-    """Salida con esquema fijo. En la H200 el método por defecto no le muestra
+    """Salida con esquema fijo; devuelve {"raw", "parsed", "parsing_error"}. En la H200 el método por defecto no le muestra
     el esquema al modelo; con function_calling viaja como herramienta."""
     if config_de(rol).proveedor == "anthropic":
-        return llm.with_structured_output(esquema)
-    return llm.with_structured_output(esquema, method="function_calling")
+        return llm.with_structured_output(esquema, include_raw=True)
+    return llm.with_structured_output(esquema, method="function_calling", include_raw=True)
 
 
 def get_embeddings():

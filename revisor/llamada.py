@@ -39,3 +39,36 @@ def invocar(llm, mensajes, *, agente: str, modelo: str, traza: Traza, reintentos
         if not vacia:
             break
     return respuesta
+
+
+def invocar_estructurado(
+    llm, esquema, mensajes, *, agente: str, modelo: str, traza: Traza, rol: str = "default",
+    reintentos: int = 1,
+):
+    """Como invocar, para una respuesta con esquema fijo. Devuelve el objeto
+    validado, o None si tras los reintentos el modelo no lo entregó."""
+    from .config import estructurado
+
+    ejecutable = estructurado(llm, esquema, rol)
+    for _ in range(reintentos + 1):
+        inicio = time.perf_counter()
+        try:
+            resultado = ejecutable.invoke(mensajes)
+        except Exception as error:
+            latencia = round((time.perf_counter() - inicio) * 1000)
+            traza.llamada(agente, modelo, 0, 0, latencia, error=f"{type(error).__name__}: {error}")
+            raise
+        latencia = round((time.perf_counter() - inicio) * 1000)
+        uso = resultado["raw"].usage_metadata or {}
+        objeto = resultado["parsed"]
+        motivo = None
+        if objeto is None:
+            fin = resultado["raw"].response_metadata.get("finish_reason")
+            motivo = f"sin salida estructurada (finish_reason={fin}): {resultado['parsing_error']}"
+        traza.llamada(
+            agente, modelo, uso.get("input_tokens", 0), uso.get("output_tokens", 0), latencia,
+            error=motivo,
+        )
+        if objeto is not None:
+            return objeto
+    return None
