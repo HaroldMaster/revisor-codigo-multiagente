@@ -13,3 +13,6 @@ dist/
 
 # índice del RAG: se reconstruye con la ingesta
 revisor/rag/.indice/
+
+# configuración local por rol
+modelos.toml

@@ -1,0 +1,58 @@
+[
+  {
+    "id": "owasp-validacion",
+    "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Input_Validation_Cheat_Sheet.md",
+    "fecha": "2026-10-03",
+    "bytes": 8239,
+    "sha256": "163390e3dcf5cc965aeac5e633692682403c08067a7f2ae54bdb49372e886810"
+  },
+  {
+    "id": "owasp-errores",
+    "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Error_Handling_Cheat_Sheet.md",
+    "fecha": "2026-10-03",
+    "bytes": 18087,
+    "sha256": "a1e03e48c8e6c89b64e13d7e009d5b9843531886fd5c43e63d8c1f14e59ed23c"
+  },
+  {
+    "id": "tseslint-no-explicit-any",
+    "url": "https://raw.githubusercontent.com/typescript-eslint/typescript-eslint/main/packages/eslint-plugin/docs/rules/no-explicit-any.mdx",
+    "fecha": "2026-10-03",
+    "bytes": 8323,
+    "sha256": "515705efee47e5f1cf9513e1797ee9d3d9287b578f6106d6e860d3b10d7239dc"
+  },
+  {
+    "id": "eslint-no-console",
+    "url": "https://raw.githubusercontent.com/eslint/eslint/main/docs/src/rules/no-console.md",
+    "fecha": "2026-10-03",
+    "bytes": 2910,
+    "sha256": "e00bcac2775e7008d7a1794b0bf816a5b6e400ec048251ad760bc9eaf8077485"
+  },
+  {
+    "id": "typescript-narrowing",
+    "url": "https://raw.githubusercontent.com/microsoft/TypeScript-Website/v2/packages/documentation/copy/en/handbook-v2/Narrowing.md",
+    "fecha": "2026-10-03",
+    "bytes": 25780,
+    "sha256": "4836a29bbb3097085d0b21d0631ac464fcfb2a8719a17f4602e892d2be4f337e"
+  },
+  {
+    "id": "clean-code-typescript",
+    "url": "https://raw.githubusercontent.com/labs42io/clean-code-typescript/main/README.md",
+    "fecha": "2026-10-03",
+    "bytes": 77278,
+    "sha256": "04a06a5de1bb6f07b503cc3bf07ec6cb0e19fffbd923a27de3b215795dd73921"
+  },
+  {
+    "id": "google-que-mirar-en-un-review",
+    "url": "https://raw.githubusercontent.com/google/eng-practices/master/review/reviewer/looking-for.md",
+    "fecha": "2026-10-03",
+    "bytes": 11330,
+    "sha256": "0a6643fc4ce2bc73e4d7a4ac01df694085adf9bd70cb499c5e8645dfd8c1f839"
+  },
+  {
+    "id": "mdn-colecciones-con-clave",
+    "url": "https://raw.githubusercontent.com/mdn/content/main/files/en-us/web/javascript/guide/keyed_collections/index.md",
+    "fecha": "2026-10-03",
+    "bytes": 7948,
+    "sha256": "9a064d2c6bc21265c8de2f033d1b50a85deb743ab4237ecf4e6e139e16978ecc"
+  }
+]

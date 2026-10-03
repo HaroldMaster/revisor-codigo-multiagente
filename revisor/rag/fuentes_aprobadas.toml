@@ -1,0 +1,43 @@
+# Documentación oficial que entra al índice del RAG.
+# Solo se descarga e indexa lo que está en esta lista, aprobada a mano.
+# Descarga: python -m revisor.rag.ingesta
+
+[[fuente]]
+id = "owasp-validacion"
+url = "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Input_Validation_Cheat_Sheet.md"
+motivo = "Validar las entradas en la frontera pública (R7)"
+
+[[fuente]]
+id = "owasp-errores"
+url = "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Error_Handling_Cheat_Sheet.md"
+motivo = "Manejo de errores sin silenciarlos (R3)"
+
+[[fuente]]
+id = "tseslint-no-explicit-any"
+url = "https://raw.githubusercontent.com/typescript-eslint/typescript-eslint/main/packages/eslint-plugin/docs/rules/no-explicit-any.mdx"
+motivo = "Por qué se prohíbe any y qué usar en su lugar (R2)"
+
+[[fuente]]
+id = "eslint-no-console"
+url = "https://raw.githubusercontent.com/eslint/eslint/main/docs/src/rules/no-console.md"
+motivo = "Sin console en código de librería (R4)"
+
+[[fuente]]
+id = "typescript-narrowing"
+url = "https://raw.githubusercontent.com/microsoft/TypeScript-Website/v2/packages/documentation/copy/en/handbook-v2/Narrowing.md"
+motivo = "Cómo estrechar unknown en vez de usar any (R2)"
+
+[[fuente]]
+id = "clean-code-typescript"
+url = "https://raw.githubusercontent.com/labs42io/clean-code-typescript/main/README.md"
+motivo = "Principios de Clean Code adaptados a TypeScript, con ejemplo malo y bueno (R13, R14, R10). Repositorio comunitario, no documentación oficial"
+
+[[fuente]]
+id = "google-que-mirar-en-un-review"
+url = "https://raw.githubusercontent.com/google/eng-practices/master/review/reviewer/looking-for.md"
+motivo = "Guía de Google sobre qué revisar: diseño, funcionalidad, complejidad, tests, nombres"
+
+[[fuente]]
+id = "mdn-colecciones-con-clave"
+url = "https://raw.githubusercontent.com/mdn/content/main/files/en-us/web/javascript/guide/keyed_collections/index.md"
+motivo = "Map y Set para buscar por clave en vez de recorrer listas (R16)"

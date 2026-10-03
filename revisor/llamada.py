@@ -1,0 +1,41 @@
+"""Toda llamada al modelo pasa por aquí: mide, registra en la traza y
+reintenta cuando el modelo devuelve una respuesta vacía."""
+
+from __future__ import annotations
+
+import time
+
+from .traza import Traza
+
+
+def texto_de(mensaje) -> str:
+    contenido = mensaje.content
+    if isinstance(contenido, str):
+        return contenido
+    return "".join(b.get("text", "") for b in contenido if isinstance(b, dict))
+
+
+def invocar(llm, mensajes, *, agente: str, modelo: str, traza: Traza, reintentos_vacia: int = 1):
+    respuesta = None
+    for _ in range(reintentos_vacia + 1):
+        inicio = time.perf_counter()
+        try:
+            respuesta = llm.invoke(mensajes)
+        except Exception as error:
+            latencia = round((time.perf_counter() - inicio) * 1000)
+            traza.llamada(agente, modelo, 0, 0, latencia, error=f"{type(error).__name__}: {error}")
+            raise
+        latencia = round((time.perf_counter() - inicio) * 1000)
+        uso = respuesta.usage_metadata or {}
+        vacia = not texto_de(respuesta).strip() and not respuesta.tool_calls
+        traza.llamada(
+            agente,
+            modelo,
+            uso.get("input_tokens", 0),
+            uso.get("output_tokens", 0),
+            latencia,
+            error="respuesta vacía" if vacia else None,
+        )
+        if not vacia:
+            break
+    return respuesta

@@ -1,0 +1,6 @@
+# Opcional: copiar a modelos.toml para darle a un rol un modelo distinto del de .env.
+# Los roles que no aparecen usan el de .env.
+
+[roles.implementador]
+proveedor = "anthropic"
+modelo = "claude-sonnet-5-5"
