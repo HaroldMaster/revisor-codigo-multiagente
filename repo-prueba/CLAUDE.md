@@ -1,6 +1,6 @@
 # Reglas del repositorio: mini tienda
 
-Mini tienda en TypeScript puro: carrito, descuentos, inventario y pedidos. Este archivo es la fuente de las reglas que debe cumplir todo cambio. Cada regla tiene un identificador estable para poder citarla en un review.
+Mini tienda en TypeScript puro: carrito, descuentos, inventario y pedidos. Este archivo es la fuente de las reglas que debe cumplir todo cambio. Cada regla tiene un identificador estable para poder citarla en un review. Las reglas R13 a R16 indican además la fuente externa de la que salen.
 
 ## Comandos
 
@@ -93,3 +93,35 @@ Por qué: un pedido ya creado no debe poder cambiar de total.
 El impuesto se aplica sobre el subtotal menos el descuento, con la constante `IMPUESTO_PORCENTAJE`. El porcentaje no se escribe como número suelto en ningún otro sitio.
 
 Por qué: calcularlo antes cobra impuesto sobre dinero que el cliente no paga.
+
+### R13. Una función hace una sola cosa y es corta
+
+Cada función tiene una única responsabilidad y un solo nivel de abstracción. Como límite práctico: no más de 30 líneas ni más de dos niveles de anidamiento. Si necesita un comentario para separar "pasos", cada paso es otra función.
+
+Por qué: una función que hace varias cosas no se puede nombrar, probar ni reutilizar por partes.
+
+Fuente: clean-code-typescript, «Functions should do one thing» y «Functions should only be one level of abstraction».
+
+### R14. Sin números mágicos
+
+Un número con significado en el dominio se declara como constante con nombre (`IMPUESTO_PORCENTAJE`, `CENTAVOS_POR_UNIDAD`) y se usa por ese nombre. Se exceptúan 0 y 1 cuando son neutros de una suma o un índice.
+
+Por qué: un `100` suelto no dice si son centavos o un porcentaje, y no se puede buscar.
+
+Fuente: clean-code-typescript, «Use searchable names».
+
+### R15. No se repite dentro de un bucle lo que no cambia entre vueltas
+
+Un cálculo cuyo resultado es el mismo en todas las iteraciones se hace una vez, antes del bucle. Esto incluye volver a recorrer o sumar la misma lista en cada vuelta.
+
+Por qué: convierte un recorrido lineal en uno cuadrático sin que el resultado cambie.
+
+Fuente: convención de este repositorio; no hay un documento oficial equivalente.
+
+### R16. Para buscar por identificador se usa `Map` o `Set`
+
+Cuando hay que encontrar elementos por su identificador más de una vez, se indexan en un `Map` o un `Set`. No se usa `find`, `filter`, `includes` ni `indexOf` sobre una lista dentro de otro bucle.
+
+Por qué: cada búsqueda en una lista la recorre entera; dentro de un bucle el costo crece con el cuadrado del tamaño.
+
+Fuente: MDN, guía «Keyed collections».
