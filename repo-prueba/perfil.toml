@@ -1,0 +1,17 @@
+# Perfil de este repo para el revisor multiagente.
+# Todo lo que depende del repo revisado vive aqui, no en el codigo del revisor.
+
+[checks]
+lint  = "npx eslint ."
+tests = "npx vitest run"
+tipos = "npx tsc --noEmit"
+
+[archivos]
+codigo  = ["src/**/*.ts"]
+ignorar = ["**/node_modules/**", "**/dist/**"]
+
+[reglas]
+rutas = ["CLAUDE.md"]
+
+[particion]
+codigo = "typescript"

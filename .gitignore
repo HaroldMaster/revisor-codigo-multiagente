@@ -1,0 +1,15 @@
+# credenciales: nunca al repositorio
+.env
+.env.*
+!.env.example
+
+# dependencias y cachés
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+
+# índice del RAG: se reconstruye con la ingesta
+revisor/rag/.indice/
