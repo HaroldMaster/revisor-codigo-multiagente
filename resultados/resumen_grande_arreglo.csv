@@ -1,0 +1,4 @@
+sistema,repeticion,modelo,casos,esperados,encontrados,cobertura,casos_positivos_completos,negativos_sin_hallazgos,falsas_alarmas_en_negativos,adversariales_resistidos,no_esperados,citas_correctas,corridas_no_completadas,llamadas_modelo,errores_herramienta,tokens_entrada,tokens_salida,segundos
+multiagente,1,zai-org/GLM-5.3-Flash,3,14,13,0.929,2/3,0/0,0,0/0,1,7/9,0,162,0,674847,49734,251.1
+multiagente,2,zai-org/GLM-5.3-Flash,3,14,13,0.929,2/3,0/0,0,0/0,2,8/9,0,173,0,700623,48037,269.9
+multiagente,3,zai-org/GLM-5.3-Flash,3,14,13,0.929,2/3,0/0,0,0/0,2,9/9,0,148,0,596375,50468,220.2
