@@ -95,10 +95,10 @@ def parte0(p, archivo, **k):
 def parte1(p, tabla, pre, pasos_de, diagrama, informe_de, datos, RAIZ, recolectar, cargar_perfil, tomllib, Counter, **k):
     p("<h2>Parte 1 — El revisor: baseline y capa multiagente</h2>")
     p("<h3>El bucle de un agente</h3>")
-    p("<p>Todo agente del sistema es el mismo grafo de dos nodos (<code>revisor/agentes/bucle.py</code>). Lo que cambia de un agente a otro es su prompt y qué herramientas recibe.</p>")
+    p("<p>Todos los agentes del sistema usan el mismo grafo de dos nodos, que está en <code>revisor/agentes/bucle.py</code>. Lo que cambia entre un agente y otro es su prompt y las herramientas que recibe.</p>")
     p(diagrama("bucle", "Figura 2. El bucle de un agente. El agente termina cuando el modelo responde sin pedir herramientas o cuando salta un freno (tope de pasos, presupuesto de tokens o repetición)."))
     p("<h3>Baseline: un solo agente</h3>")
-    p("<p><code>revisor/baseline.py</code>. Un agente con las cuatro herramientas y un prompt general con las cinco dimensiones. Es la skill <code>review-custom</code> llevada a LangGraph, con el mismo modelo que el resto: entre el baseline y el sistema multiagente solo cambia el reparto del trabajo.</p>")
+    p("<p>El baseline está en <code>revisor/baseline.py</code>. Es un solo agente con las cuatro herramientas y un prompt general que le pide revisar las cinco dimensiones. Es la receta de mi skill <code>review-custom</code> pasada a LangGraph, con el mismo modelo que el resto. Así, entre el baseline y el sistema multiagente lo único que cambia es cómo se reparte el trabajo.</p>")
     p(diagrama("baseline", "Figura 3. El baseline. En azul el agente, en gris los pasos que son código sin modelo."))
     p("<h3>Capa multiagente</h3>")
     p(diagrama("multiagente", "Figura 4. El sistema multiagente. En azul los siete agentes, en gris los pasos que son código sin modelo."))
@@ -111,7 +111,7 @@ def parte1(p, tabla, pre, pasos_de, diagrama, informe_de, datos, RAIZ, recolecta
         ["Verificador", "Recibe solo la ficha, sin la conversación del reviewer, y la confirma, la deja como plausible o la descarta", "leer, grep, checks"],
         ["Sintetizador", "Redacta el informe con lo que quedó", "ninguna"],
     ]))
-    p("<p>En la primera versión, el paso de unir juntaba hallazgos de líneas vecinas y de dimensiones distintas, y con eso se perdían problemas reales. Se corrigió después de ver las trazas de la primera medición. Los cinco reviewers corren en paralelo y no se ven entre sí: cada uno deja fichas en el estado compartido. Tres nodos son código sin modelo: <i>unir</i> quita los repetidos (mismo archivo, línea y dimensión); <i>comprobar</i> descarta un hallazgo si el archivo no existe, si la evidencia no es una copia literal de una línea, o si cita una regla que el RAG no devolvió en esa corrida. Y, tras el sintetizador, una comprobación de procedencia rechaza el informe si menciona una ubicación o una regla que no viene de ningún hallazgo (a la segunda vez se entrega un informe armado por código).</p>")
+    p("<p>Los cinco reviewers trabajan al mismo tiempo y no ven lo que hacen los otros. Cada uno deja sus hallazgos en el estado compartido. Después hay tres pasos que son código, sin modelo. El paso de unir quita los hallazgos repetidos, que son los que tienen el mismo archivo, la misma línea y la misma dimensión. El paso de comprobar descarta un hallazgo si el archivo no existe, si la evidencia no es una copia exacta de una línea del archivo, o si cita una regla que el RAG no devolvió en esa corrida. Y después del sintetizador, otro paso revisa que el informe no mencione ninguna ubicación ni regla que no venga de un hallazgo. Si falla dos veces, se entrega un informe armado por código. En la primera versión el paso de unir juntaba hallazgos de líneas vecinas y de dimensiones distintas, y con eso se perdían problemas reales. Se corrigió después de ver las trazas de la primera medición.</p>")
 
     p("<h3>Las herramientas</h3>")
     p(tabla(["herramienta", "qué hace", "límite, fijado en el código de la herramienta"], [
@@ -132,7 +132,7 @@ def parte1(p, tabla, pre, pasos_de, diagrama, informe_de, datos, RAIZ, recolecta
         origen = f"github.com/{partes_url[3]}/{partes_url[4]}"
         filas.append([f["motivo"].split(". Repositorio")[0], tipo, origen, cuenta[f"docs/{f['id']}.md"], descarga[f["id"]]["fecha"]])
     p("<h3>El RAG</h3>")
-    p(f"<p>El índice tiene {sum(cuenta.values())} fragmentos, uno por sección de cada documento, con embeddings de bge-m3 y búsqueda por coseno en memoria. No hay búsqueda web en vivo: un script descarga una lista cerrada de fuentes, aprobada a mano, y anota fecha y huella de cada una (<code>revisor/rag/fuentes/DESCARGA.json</code>). Un agente evaluado contra la web viva mediría la web.</p>")
+    p(f"<p>El índice tiene {sum(cuenta.values())} fragmentos, uno por cada sección de cada documento, con embeddings de bge-m3. No se busca en la web durante una corrida. Un script descarga antes una lista fija de fuentes, que aprobé a mano, y guarda la fecha de cada descarga (<code>revisor/rag/fuentes/DESCARGA.json</code>). Si el agente buscara en la web en cada corrida, los resultados cambiarían según lo que encuentre ese día y no se podrían comparar.</p>")
     p(tabla(["fuente", "tipo", "de dónde se descargó", "fragmentos", "fecha"], filas, numericas=(3,)))
     p("<p><code>clean-code-typescript</code> es una adaptación comunitaria del libro <i>Clean Code</i>, no documentación oficial. La regla R15 (no repetir en un bucle lo que no cambia) no tiene fuente externa: es convención del repo.</p>")
 
@@ -147,9 +147,10 @@ def parte1(p, tabla, pre, pasos_de, diagrama, informe_de, datos, RAIZ, recolecta
     ]))
     p("<p>Contrato con el Taller 4: las clases de <code>revisor/sistemas.py</code> se instancian sin argumentos y <code>.run(pregunta)</code> devuelve <code>answer</code>, <code>trace</code>, <code>status</code>, <code>model</code> y <code>usage</code>. La pregunta es la ruta de un parche.</p>")
 
-    p("<h3>Una corrida, paso a paso</h3>")
-    p("<p>La tabla muestra los pasos del baseline en el caso C01, tomados de su traza. Cada fila es una acción del agente: la herramienta que pidió y lo que recibió, o lo que respondió cuando no pidió ninguna. Las trazas completas de todas las corridas están en <code>resultados/trazas/</code>.</p>")
+    p("<h3>Dos corridas, paso a paso</h3>")
+    p("<p>Las dos tablas muestran los pasos del baseline en dos corridas, tomados de sus trazas. La primera es el caso C01. La segunda es el caso C02, en el que el agente usó las cuatro herramientas. Cada fila es una acción del agente: la herramienta que pidió y lo que recibió, o lo que respondió cuando no pidió ninguna. Las trazas completas de todas las corridas están en <code>resultados/trazas/</code>.</p>")
     p(pasos_de("resultados/trazas/baseline/C01.jsonl", maximo=6))
+    p(pasos_de("resultados/trazas/baseline_r2/C02.jsonl", maximo=8))
     p("<h3>El informe que entrega</h3>")
     p("<p>Lo que recibe quien usa el sistema es un informe de review en texto. Sale por la terminal al correr <code>python -m revisor &lt;parche&gt;</code>, es el campo <code>answer</code> de lo que devuelve <code>.run()</code>, y queda guardado al final de la traza de cada corrida. Estos son los dos informes que se entregaron para el mismo caso, el C06, donde un método nuevo devuelve <code>-1</code> en vez de lanzar un error. En el baseline el informe lo arma el código a partir de los hallazgos. En el sistema multiagente lo redacta el sintetizador, con los hallazgos que pasaron por el verificador.</p>")
     p(informe_de("resultados/trazas/baseline/C06.jsonl", "Informe del baseline para el caso C06"))
@@ -184,25 +185,26 @@ def _tabla_sistemas(tabla, datos, conjunto="", sistemas=None):
     for sistema, nombre in presentes:
         m = resumen[sistema]
         esperados, citas = int(m["esperados"][0]), int(m["citas_esperadas"][0])
-        fila = [nombre, m["repeticiones"],
+        fila = [nombre,
                 f"{datos.media_y_rango(m['encontrados'])} de {esperados}",
                 f"{datos.media_y_rango(m['citas_correctas'])} de {citas}"]
         if not conjunto:
             fila += [datos.media_y_rango(m["falsas_alarmas"]), datos.media_y_rango(m["adversarial"])]
-        fila += [datos.media_y_rango(m["no_esperados"])]
+        fila += [datos.media_y_rango(m["no_esperados"]), datos.media_y_rango(m["sin_reportar"])]
         calidad.append(fila)
         tokens = datos.media(m["tokens_entrada"])
         costo.append([nombre, datos.media_y_rango(m["incompletas"]), datos.miles(datos.media(m["llamadas"])),
+                      datos.media_y_rango(m["errores_herramienta"]),
                       datos.miles(tokens), f"{datos.dec(tokens / base)}×" if base else "—",
                       datos.miles(datos.media(m["tokens_salida"])), f"{datos.media(m['segundos']):.0f}"])
-    encabezado = ["sistema", "corridas", "problemas encontrados", "regla correcta citada"]
+    encabezado = ["sistema", "problemas encontrados", "regla correcta citada"]
     if not conjunto:
         encabezado += ["hallazgos en los 2 casos limpios", "trampa resistida (de 1)"]
-    encabezado += ["hallazgos no esperados"]
+    encabezado += ["hallazgos no esperados", "casos con problema en los que no reportó nada"]
     return (
         tabla(encabezado, calidad, numericas=tuple(range(1, len(encabezado))))
-        + tabla(["sistema", "corridas incompletas", "llamadas al modelo", "tokens de entrada", "frente al baseline",
-                 "tokens de salida", "segundos (suma de los casos)"], costo, numericas=(1, 2, 3, 4, 5, 6))
+        + tabla(["sistema", "corridas incompletas", "llamadas al modelo", "errores de herramienta", "tokens de entrada",
+                 "frente al baseline", "tokens de salida", "segundos (suma de los casos)"], costo, numericas=(1, 2, 3, 4, 5, 6, 7))
     )
 
 
@@ -229,7 +231,8 @@ def parte2b(p, tabla, datos, **k):
     p("<h3>2.b — Las métricas</h3>")
     p("<p>Al inicio cada sistema se midió una sola vez, apenas se terminaba de construir. Así el baseline dio 11 de 14 y el sistema multiagente dio primero 11 y, después de corregir un error, 14. Pero cuando se volvió a medir todo junto, el mismo baseline dio 13. Eso mostró que una sola corrida no alcanza, porque el modelo no responde siempre igual. Por eso las tablas de esta sección salen de una medición final en la que todos los sistemas se midieron con el mismo golden set, el mismo modelo y el mismo commit, tres veces cada uno. Cada celda es el promedio de las tres corridas y, entre paréntesis, el mínimo y el máximo. Un solo número significa que las tres dieron lo mismo. Las cifras salen de <code>resultados/resultados_&lt;sistema&gt;[_rN].csv</code>.</p>")
     p(_tabla_sistemas(tabla, datos))
-    p("<p>Baseline: un agente con un prompt general. &quot;Con las instrucciones de los reviewers&quot;: el mismo agente único con las instrucciones detalladas de los cinco reviewers juntas (control). Sin verificador y sin RAG: el sistema multiagente con esa pieza apagada (ablaciones). Razonamiento medio y alto: el parámetro <code>reasoning_effort</code> del modelo, que por defecto está en <code>low</code> (extensión, Parte 4). Los negativos no entran en &quot;problemas encontrados&quot;: no hay nada que acertar.</p>")
+    p("<p>En las tablas, el baseline es un agente con un prompt general. El agente con las instrucciones de los reviewers es el mismo agente único, pero con las instrucciones detalladas de los cinco reviewers (es el control). Sin verificador y sin RAG son el sistema multiagente con esa pieza apagada. Razonamiento medio y alto se explican en la Parte 4.</p>")
+    p("<p>Como este sistema revisa código y no responde preguntas, las métricas del enunciado se adaptaron así. La exactitud es cuántos problemas encontró. Abstenerse bien es no reportar nada en los dos casos que estaban correctos. Abstenerse mal es no reportar nada en un caso que sí tenía un problema, que es la última columna de la primera tabla. Resistir el caso adversarial es reportar el problema aunque el código traiga un comentario que pide no hacerlo. El repositorio nunca se modifica, porque las herramientas solo leen y cada corrida trabaja sobre una copia temporal.</p>")
     p("<p>La tabla siguiente muestra solo los casos en los que algún sistema falló, sumando las tres corridas (3/3 significa que lo encontró las tres veces). Los demás casos los resolvieron bien todos los sistemas en todas las corridas.</p>")
     p(_tabla_por_caso(tabla, datos))
 
@@ -270,7 +273,7 @@ def parte2c(p, pasos_de, **k):
 
 def parte3(p, tabla, archivo, datos, **k):
     p("<h2>Parte 3 — Frenos, probados haciéndolos saltar</h2>")
-    p("<p>Cuatro frenos, todos en código y fuera del control del modelo. Se forzaron con un modelo de guion (<code>evaluacion/guion.py</code>) que se porta mal a propósito, así que no gastaron nada: <code>python -m evaluacion.forzar_frenos</code>. Hay una traza por freno en <code>resultados/frenos/</code>.</p>")
+    p("<p>El sistema tiene cuatro frenos. Todos están en código, así que el modelo no puede saltárselos. Para probarlos se usó un modelo de guion (<code>evaluacion/guion.py</code>), que es un modelo falso que devuelve lo que uno le escribe. Con él se puede hacer que el agente se porte mal a propósito sin gastar nada. Se corren con <code>python -m evaluacion.forzar_frenos</code> y hay una traza por freno en <code>resultados/frenos/</code>.</p>")
     p(tabla(["freno", "dónde", "cómo se forzó", "qué pasó"], [
         ["Tope de pasos", "<code>bucle.py</code>", "El guion pide una búsqueda distinta en cada turno y nunca termina. Límite 4", "Corta al cuarto paso. Cada llamada pendiente recibe su resultado y el agente entrega el hallazgo que tenía"],
         ["Presupuesto de tokens", "<code>traza.py</code>, antes de cada llamada", "Cada turno cuesta 30 000 tokens. Límite 120 000 con 35 000 de reserva", "Corta a los 91 500. La reserva alcanza para extraer el hallazgo"],

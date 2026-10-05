@@ -65,6 +65,9 @@ def resumen_por_sistema(conjunto: str = "") -> dict[str, dict]:
                 sum(f["encontrados"] == f["esperados"] for f in adversariales)
             )
             metricas["no_esperados"].append(sum(_numero(f["no_esperados"]) for f in filas))
+            metricas["sin_reportar"].append(
+                sum(1 for f in filas if _numero(f["esperados"]) > 0 and _numero(f["hallazgos"]) == 0)
+            )
             metricas["hallazgos"].append(sum(_numero(f["hallazgos"]) for f in filas))
             metricas["incompletas"].append(sum(f["status"] != "completed" for f in filas))
             metricas["llamadas"].append(sum(_numero(f["llamadas_modelo"]) for f in filas))
