@@ -78,7 +78,7 @@ def parte0(p, archivo, **k):
     p("<p>El cambio tiene un bug y llega con un test que solo revisa que la función exista, así que lint, tipos y tests pasan. Las dos comprobaciones en código lo rechazan sin usar ningún modelo: una ve que el test no compara ningún valor y la otra rompe la función a propósito y los tests siguen pasando. Por eso el sistema no se guía solo por si los tests pasan.</p>")
 
 
-def parte1(p, tabla, pre, pasos_de, diagrama, datos, RAIZ, recolectar, cargar_perfil, tomllib, Counter, **k):
+def parte1(p, tabla, pre, pasos_de, diagrama, informe_de, datos, RAIZ, recolectar, cargar_perfil, tomllib, Counter, **k):
     p("<h2>Parte 1 — El revisor: baseline y capa multiagente</h2>")
     p("<h3>El bucle de un agente</h3>")
     p("<p>Todo agente del sistema es el mismo grafo de dos nodos (<code>revisor/agentes/bucle.py</code>). Lo que cambia de un agente a otro es su prompt y qué herramientas recibe.</p>")
@@ -135,6 +135,11 @@ def parte1(p, tabla, pre, pasos_de, diagrama, datos, RAIZ, recolectar, cargar_pe
     p("<p>Las dos tablas siguientes muestran los primeros pasos de dos corridas, tomados de sus trazas. Cada fila es una acción de un agente: la herramienta que pidió y lo que recibió, o lo que respondió cuando no pidió ninguna. En el sistema multiagente los reviewers trabajan a la vez, por eso sus filas aparecen mezcladas. La primera es el caso C01 con el baseline y la segunda el caso C11 con el sistema multiagente. Las trazas completas están en <code>resultados/trazas/</code>.</p>")
     p(pasos_de("resultados/trazas/baseline/C01.jsonl", maximo=6))
     p(pasos_de("resultados/trazas/multiagente/C11.jsonl", maximo=8))
+    p("<h3>El informe que entrega</h3>")
+    p("<p>Lo que recibe quien usa el sistema es un informe de review en texto. Sale por la terminal al correr <code>python -m revisor &lt;parche&gt;</code>, es el campo <code>answer</code> de lo que devuelve <code>.run()</code>, y queda guardado al final de la traza de cada corrida. Estos son los dos informes que se entregaron para el mismo caso, el C06, donde un método nuevo devuelve <code>-1</code> en vez de lanzar un error. En el baseline el informe lo arma el código a partir de los hallazgos. En el sistema multiagente lo redacta el sintetizador, con los hallazgos que pasaron por el verificador.</p>")
+    p(informe_de("resultados/trazas/baseline/C06.jsonl", "Informe del baseline para el caso C06"))
+    p(informe_de("resultados/trazas/multiagente/C06.jsonl", "Informe del sistema multiagente para el caso C06"))
+    p("<p>En este caso el baseline encuentra el problema pero no cita la regla correcta (R3), y el multiagente sí. Los dos reportan el mismo problema más de una vez con otras palabras.</p>")
 
 
 def parte2a(p, tabla, datos, RAIZ, **k):

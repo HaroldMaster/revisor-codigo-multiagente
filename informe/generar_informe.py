@@ -43,6 +43,9 @@ figcaption { font-size: 9pt; color: #444; margin-top: 4px; }
 .traza table { font-size: 7.5pt; width: 100%; }
 .traza td:nth-child(1) { white-space: nowrap; }
 .traza td:nth-child(2) { width: 34%; }
+.entrega { border: 1px solid #999; padding: 6px 12px; margin: 10px 0; font-size: 9.5pt; break-inside: avoid; }
+.entrega .rotulo { font-size: 8.5pt; color: #555; border-bottom: 1px solid #ccc; padding-bottom: 3px; margin-bottom: 4px; }
+.entrega p { margin: 5px 0; } .entrega ul { margin: 4px 0; padding-left: 18px; }
 h2, h3 { break-after: avoid; }
 pre, figure, table { break-inside: avoid; }
 .traza table { break-inside: auto; }
@@ -155,8 +158,39 @@ def pasos_de(traza: str, maximo: int = 14, ancho: int = 170, solo: tuple = (), e
     return "<div class='traza'>" + tabla(["quién", "qué herramienta pide", "qué recibe o qué responde"], filas) + "</div>"
 
 
+def informe_de(traza: str, titulo: str) -> str:
+    """El informe de review que entregó una corrida, tal como quedó guardado en su traza."""
+    import re
+
+    texto = next(e["informe"] for e in datos.eventos(RAIZ / traza) if e["tipo"] == "resultado")
+
+    def en_linea(t: str) -> str:
+        t = html.escape(t)
+        t = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
+        return re.sub(r"`(.+?)`", r"<code>\1</code>", t)
+
+    partes, en_lista = [], False
+    for linea in texto.splitlines():
+        if linea.startswith("- "):
+            partes.append(("" if en_lista else "<ul>") + f"<li>{en_linea(linea[2:])}")
+            en_lista = True
+        elif linea.startswith("  ") and en_lista:
+            partes.append(f"<br>{en_linea(linea.strip())}")
+        else:
+            if en_lista:
+                partes.append("</li></ul>")
+                en_lista = False
+            if linea.startswith("#"):
+                partes.append(f"<p><b>{en_linea(linea.lstrip('# '))}</b></p>")
+            elif linea.strip():
+                partes.append(f"<p>{en_linea(linea)}</p>")
+    if en_lista:
+        partes.append("</li></ul>")
+    return f"<div class='entrega'><div class='rotulo'>{titulo}</div>{''.join(partes)}</div>"
+
+
 for seccion in textos.SECCIONES:
-    seccion(p, tabla=tabla, pre=pre, archivo=archivo, pasos_de=pasos_de, diagrama=diagrama, datos=datos, RAIZ=RAIZ,
+    seccion(p, tabla=tabla, pre=pre, archivo=archivo, pasos_de=pasos_de, diagrama=diagrama, informe_de=informe_de, datos=datos, RAIZ=RAIZ,
             recolectar=recolectar, cargar_perfil=cargar_perfil, tomllib=tomllib, Counter=Counter)
 
 documento = (
