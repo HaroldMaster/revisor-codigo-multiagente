@@ -1,0 +1,4 @@
+sistema,repeticion,caso,tipo,dimension,esperados,encontrados,citas_esperadas,citas_correctas,hallazgos,aceptables,no_esperados,descartados,status,llamadas_modelo,usos_herramienta,errores_herramienta,frenos,tokens_entrada,tokens_salida,segundos,modelo,traza
+sin_rag,1,G01,grande,varias,6,6,5,0,11,0,0,0,completed,52,31,0,0,202209,11198,53.3,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_grande/G01.jsonl
+sin_rag,1,G02,grande,varias,5,4,4,0,11,0,0,1,completed,58,39,0,0,210532,10071,41.2,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_grande/G02.jsonl
+sin_rag,1,G03,complejo,correctness,3,3,0,0,7,0,1,0,completed,43,27,0,0,190746,26733,115.0,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_grande/G03.jsonl

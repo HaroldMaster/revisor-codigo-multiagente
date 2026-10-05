@@ -1,0 +1,4 @@
+caso,demostrado,detalle,checks_en_verde
+G01,True,"partes demostradas: C03 sí, C06 sí, C08 sí, C09 sí, C10 sí",True
+G02,True,"partes demostradas: C04 sí, C05 sí, C07 sí, C11 sí",False
+G03,True,"partes demostradas: G03a sí, G03b sí, G03c sí",True

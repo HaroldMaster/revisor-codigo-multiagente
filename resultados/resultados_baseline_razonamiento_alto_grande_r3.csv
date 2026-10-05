@@ -1,0 +1,4 @@
+sistema,repeticion,caso,tipo,dimension,esperados,encontrados,citas_esperadas,citas_correctas,hallazgos,aceptables,no_esperados,descartados,status,llamadas_modelo,usos_herramienta,errores_herramienta,frenos,tokens_entrada,tokens_salida,segundos,modelo,traza
+baseline_razonamiento_alto,3,G01,grande,varias,6,5,5,2,7,0,0,0,completed,5,10,0,0,40206,4507,28.0,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto_grande_r3/G01.jsonl
+baseline_razonamiento_alto,3,G02,grande,varias,5,4,4,1,5,0,0,0,completed,5,10,0,0,31551,3150,21.6,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto_grande_r3/G02.jsonl
+baseline_razonamiento_alto,3,G03,complejo,correctness,3,2,0,0,6,1,2,0,completed,5,9,0,0,30681,5821,35.6,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto_grande_r3/G03.jsonl
