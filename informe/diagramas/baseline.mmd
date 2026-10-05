@@ -1,0 +1,9 @@
+flowchart LR
+    I(["parche"]) --> P["preparar"]
+    P --> R["reviewer único<br/>(4 herramientas)"]
+    R --> N["informe"]
+    N --> F(["fin"])
+    classDef agente fill:#e8eef9,stroke:#4a6fa5,color:#1f2d3d
+    classDef codigo fill:#f1f1f1,stroke:#888,color:#222
+    class R agente
+    class P,N codigo

@@ -37,8 +37,15 @@ th { background: #eee; }
 td.n, th.n { text-align: right; white-space: nowrap; }
 .nota { color: #555; font-size: 9pt; }
 blockquote { margin: 8px 0; padding-left: 10px; border-left: 3px solid #bbb; }
+figure { margin: 14px 0; text-align: center; }
+figure img { max-width: 100%; }
+figcaption { font-size: 9pt; color: #444; margin-top: 4px; }
+.traza table { font-size: 7.5pt; width: 100%; }
+.traza td:nth-child(1), .traza td:nth-child(2) { white-space: nowrap; }
 h2, h3 { break-after: avoid; }
-table, pre { break-inside: avoid; }
+pre, figure, table { break-inside: avoid; }
+.traza table { break-inside: auto; }
+.traza tr { break-inside: avoid; }
 """
 
 partes: list[str] = []
@@ -67,39 +74,55 @@ def archivo(ruta: str, desde: str | None = None, hasta: str | None = None, quita
     return pre("\n".join(l for l in lineas if not any(q in l for q in quitar)))
 
 
-def pasos_de(traza: str, maximo: int = 14, ancho: int = 150, solo: tuple = (), errores: bool = False) -> str:
-    """Una traza en limpio: qué pidió cada agente, qué observó y qué respondió."""
-    lineas = []
+ANCHO_FIGURA = {"bucle": 72, "baseline": 62}
+
+
+def diagrama(nombre: str, pie: str) -> str:
+    """Un diagrama hecho en Mermaid (informe/diagramas/<nombre>.mmd), como imagen."""
+    return (
+        f"<figure><img src='diagramas/{nombre}.png' alt='{pie}' style='max-width: {ANCHO_FIGURA.get(nombre, 100)}%'>"
+        f"<figcaption>{pie}</figcaption></figure>"
+    )
+
+
+def pasos_de(traza: str, maximo: int = 14, ancho: int = 170, solo: tuple = (), errores: bool = False) -> str:
+    """Una traza como tabla: qué pidió cada agente, qué recibió y qué respondió."""
+    filas = []
     agente_actual = ""
+
+    def corto(texto) -> str:
+        texto = " ".join(str(texto).split())
+        return html.escape(texto[:ancho] + ("…" if len(texto) > ancho else ""))
+
     for e in datos.eventos(RAIZ / traza):
-        agente_actual = e.get("agente", agente_actual) if e["tipo"] in ("llamada", "herramienta") else agente_actual
-        if solo and e["tipo"] in ("llamada", "herramienta") and not any(agente_actual.startswith(a) for a in solo):
-            continue
-        if len(lineas) >= maximo:
-            lineas.append("…")
+        if e["tipo"] in ("llamada", "herramienta"):
+            agente_actual = e.get("agente", agente_actual)
+            if solo and not any(agente_actual.startswith(a) for a in solo):
+                continue
+        if len(filas) >= maximo:
+            filas.append(["…", "", "la traza sigue"])
             break
         if e["tipo"] == "llamada":
             if errores and e.get("error"):
-                motivo = " ".join(e["error"].split())[:70]
-                lineas.append(f"{e['agente']} FALLA  {motivo} · {e['tokens_salida']} tokens de salida · {e['latencia_ms'] / 1000:.0f} s")
+                filas.append([e["agente"], "falla", corto(f"{e['error']} ({e['tokens_salida']} tokens de salida, {e['latencia_ms'] / 1000:.0f} s)")])
             elif e.get("pide"):
                 for llamada in e["pide"]:
                     argumentos = json.dumps(llamada["argumentos"], ensure_ascii=False)
-                    lineas.append(f"{e['agente']} pide   {llamada['nombre']}({argumentos})"[:ancho])
+                    filas.append([e["agente"], "pide", f"<code>{corto(llamada['nombre'] + '(' + argumentos + ')')}</code>"])
             elif e.get("respuesta"):
-                lineas.append(f"{e['agente']} dice   {' '.join(e['respuesta'].split())}"[:ancho])
+                filas.append([e["agente"], "responde", corto(e["respuesta"])])
         elif e["tipo"] == "herramienta":
-            lineas.append(f"    observa  {' '.join((e.get('resultado') or '').split())}"[:ancho])
+            filas.append(["", "recibe", corto(e.get("resultado") or "")])
         elif e["tipo"] in ("freno", "veredicto", "unir", "comprobar_en_codigo", "procedencia"):
             detalle = {k: v for k, v in e.items() if k not in ("tipo", "t_ms")}
-            lineas.append(f"  [{e['tipo']}] {json.dumps(detalle, ensure_ascii=False)}"[:ancho])
+            filas.append(["código", e["tipo"].replace("_", " "), corto(json.dumps(detalle, ensure_ascii=False))])
         elif e["tipo"] == "cierre":
-            lineas.append(f"  [cierre] status={e['status']} tokens={e['uso']}")
-    return pre("\n".join(lineas))
+            filas.append(["código", "cierre", f"estado {e['status']}, {e['uso']['tokens_entrada']} tokens de entrada"])
+    return "<div class='traza'>" + tabla(["quién", "qué hace", "detalle"], filas) + "</div>"
 
 
 for seccion in textos.SECCIONES:
-    seccion(p, tabla=tabla, pre=pre, archivo=archivo, pasos_de=pasos_de, datos=datos, RAIZ=RAIZ,
+    seccion(p, tabla=tabla, pre=pre, archivo=archivo, pasos_de=pasos_de, diagrama=diagrama, datos=datos, RAIZ=RAIZ,
             recolectar=recolectar, cargar_perfil=cargar_perfil, tomllib=tomllib, Counter=Counter)
 
 documento = (

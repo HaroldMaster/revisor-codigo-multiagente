@@ -7,7 +7,7 @@ import json
 SEMBRADO = {
     "C01": "El impuesto se calcula antes de restar el descuento",
     "C02": "No deja reservar exactamente todo el stock (<code>&gt;=</code> en vez de <code>&gt;</code>)",
-    "C03": "<code>&gt;</code> donde la descripción pide «10 incluidas», y un test que no afirma ningún valor",
+    "C03": "<code>&gt;</code> donde la descripción pide &quot;10 incluidas&quot;, y un test que no afirma ningún valor",
     "C04": "Se quita el deshacer reservas cuando un pedido falla a la mitad, y su test",
     "C05": "<code>any</code> y <code>console.log</code>",
     "C06": "Devuelve <code>-1</code> en vez de lanzar un error del dominio",
@@ -38,7 +38,7 @@ def motivacion(p, tabla, **k):
     p("<h2>Motivación</h2>")
     p("<p>En el trabajo uso un conjunto de <i>skills</i> propias para Claude Code: <code>dev-cycle</code> (implementar un ticket), <code>review-custom</code> (revisar mis cambios antes de un commit) y <code>review-comments</code> (resolver el feedback de un PR). Cada una es una receta escrita en prosa que un solo agente sigue paso a paso. Funcionan, pero tienen tres límites que una receta no puede resolver:</p>")
     p(tabla(["límite", "qué pasa hoy", "qué haría falta"], [
-        ["El flujo vive en el prompt", "Los pasos y los puntos de «STOP: pedir aprobación» son instrucciones. Que se cumplan depende de que el modelo las obedezca.", "Que el orden y las pausas estén en código."],
+        ["El flujo vive en el prompt", "Los pasos y los puntos de &quot;STOP: pedir aprobación&quot; son instrucciones. Que se cumplan depende de que el modelo las obedezca.", "Que el orden y las pausas estén en código."],
         ["Un solo agente hace todo", "El mismo agente que escribe el código lo revisa, con toda la conversación de cómo lo escribió delante.", "Que quien verifica no haya visto cómo se llegó al hallazgo."],
         ["Un solo proveedor", "Las skills solo corren en Claude Code, con los modelos de Anthropic.", "Poder cambiar de modelo sin reescribir nada."],
     ]))
@@ -50,7 +50,7 @@ def que_se_construyo(p, tabla, datos, **k):
     p("<p>Un programa que recibe un parche (el diff de un cambio, con su descripción) sobre un repositorio y devuelve un informe de review. Los hallazgos salen en una ficha fija: archivo, línea, dimensión, severidad, la línea de código copiada como evidencia y, si aplica, la regla que se incumple.</p>")
     p(tabla(["requisito de la opción libre", "cómo se cumple"], [
         ["Al menos 5 agentes", "7: cinco reviewers (bugs, reglas, clean code, eficiencia, impacto), un verificador y un sintetizador"],
-        ["LangGraph y la H200", "<code>langgraph==1.2.12</code>, la versión del laboratorio; la H200 es el proveedor por defecto"],
+        ["LangGraph y la H200", "<code>langgraph==1.2.12</code>, la versión del laboratorio. La H200 es el proveedor por defecto"],
         ["3–4 herramientas", "4: <code>leer_archivo</code>, <code>grep_repo</code>, <code>buscar_reglas</code>, <code>correr_checks</code>"],
         ["Una de ellas RAG", "<code>buscar_reglas</code>: recuperación por embeddings sobre las reglas del repo y documentación descargada"],
     ]))
@@ -65,12 +65,12 @@ def que_se_construyo(p, tabla, datos, **k):
 
 def parte0(p, archivo, **k):
     p("<h2>Parte 0 — Tres fallas que no fallan</h2>")
-    p("<p class='nota'>La opción libre no trae los scripts del laboratorio, así que se escribieron tres equivalentes para un revisor de código (<code>evaluacion/parte0/</code>). La 0.b y la 0.c no usan ningún modelo.</p>")
+    p("<p>La opción libre no trae los scripts del laboratorio, así que se escribieron tres equivalentes para un revisor de código (<code>evaluacion/parte0/</code>). La 0.b y la 0.c no usan ningún modelo.</p>")
     p("<h3>0.a — El revisor que no mira</h3>")
     p("<p>El modelo recibe un diff con un bug y nada más: ni herramientas ni las reglas del repo. Se le pide un review con citas y después el código comprueba cada cita contra el repositorio. Se corrió con dos niveles de razonamiento.</p>")
     p(archivo("evaluacion/parte0/salidas/a.txt", quitar=("texto regla:", "evidencia:", "[ok]")))
-    p("<p>Con razonamiento bajo el modelo devuelve cero hallazgos, aunque el cambio tiene un bug. Eso es peor que un error, porque una respuesta vacía con el formato correcto se lee como «todo está bien». Con razonamiento alto sí ve el bug, pero las reglas que cita no existen y el texto que pone como «literal» es inventado, igual que algunos de los archivos afectados. Para no tener que adivinar, el modelo necesita poder leer los archivos y preguntar por las reglas, y además alguien tiene que comprobar que lo que cita existe. Por eso el sistema tiene herramientas, RAG y comprobaciones en código.</p>")
-    p("<p class='nota'>Salvedad: el prompt le pide al modelo el identificador y el texto de una regla que no puede conocer. Lo correcto habría sido que respondiera que no los tiene, pero la forma de la pregunta lo induce a inventar, y eso limita lo que esta prueba demuestra.</p>")
+    p("<p>Con razonamiento bajo el modelo devuelve cero hallazgos, aunque el cambio tiene un bug. Eso es peor que un error, porque una respuesta vacía con el formato correcto se lee como &quot;todo está bien&quot;. Con razonamiento alto sí ve el bug, pero las reglas que cita no existen y el texto que pone como &quot;literal&quot; es inventado, igual que algunos de los archivos afectados. Para no tener que adivinar, el modelo necesita poder leer los archivos y preguntar por las reglas, y además alguien tiene que comprobar que lo que cita existe. Por eso el sistema tiene herramientas, RAG y comprobaciones en código.</p>")
+    p("<p>Hay que tomar en cuenta que en esta prueba el prompt le pide al modelo el identificador y el texto de una regla que no puede conocer. Lo correcto habría sido que respondiera que no los tiene, pero la forma en que se le pregunta lo lleva a inventar. Por eso esta prueba muestra el problema, pero de una forma un poco forzada.</p>")
     p("<h3>0.b — El RAG plano que no trae la regla</h3>")
     p(archivo("evaluacion/parte0/salidas/b.txt"))
     p("<p>Aquí lo que falla es la búsqueda, no el modelo. La línea del diff y la regla que la prohíbe no comparten ninguna palabra, así que un índice por palabras da similitud cero y devuelve tres reglas cualesquiera. Con ese contexto el modelo citaría una regla que no aplica, o ninguna. En cambio, cuando se pregunta por la intención del cambio aparecen las dos reglas correctas. Por eso la descripción de <code>buscar_reglas</code> le pide al agente que pregunte por la intención y que no pegue código. Esta prueba usa TF-IDF. El sistema usa embeddings, que ayudan con este problema pero no lo quitan del todo.</p>")
@@ -79,43 +79,33 @@ def parte0(p, archivo, **k):
     p("<p>El cambio tiene un bug en un caso borde y llega con un test que solo revisa que la función exista. Si uno mira solo el código de salida, lo aprueba. Las dos comprobaciones en código lo rechazan sin usar ningún modelo: la primera ve que ninguna afirmación del test compara un valor, y la segunda rompe la función a propósito y los tests siguen pasando. La primera comprobación no detectaría un test que sí compara un valor pero el equivocado. Por eso la decisión final puede quedar en un modelo, pero después de estas comprobaciones.</p>")
 
 
-def parte1(p, tabla, pre, pasos_de, datos, RAIZ, recolectar, cargar_perfil, tomllib, Counter, **k):
+def parte1(p, tabla, pre, pasos_de, diagrama, datos, RAIZ, recolectar, cargar_perfil, tomllib, Counter, **k):
     p("<h2>Parte 1 — El revisor: baseline y capa multiagente</h2>")
     p("<h3>El bucle de un agente</h3>")
     p("<p>Todo agente del sistema es el mismo grafo de dos nodos (<code>revisor/agentes/bucle.py</code>). Lo que cambia de un agente a otro es su prompt y qué herramientas recibe.</p>")
-    p(pre("""inicio → modelo ──pidió herramientas y quedan pasos──→ herramientas ─┐
-            ↑─────────────────────────────────────────────────────────┘
-            └── respondió, o saltó un freno ──→ fin → extraer los hallazgos en la ficha fija
-
-Condición de parada: el modelo responde sin pedir herramientas, o salta un freno
-(tope de pasos, presupuesto de tokens, repetición)."""))
+    p(diagrama("bucle", "Figura 1. El bucle de un agente. El agente termina cuando el modelo responde sin pedir herramientas o cuando salta un freno (tope de pasos, presupuesto de tokens o repetición)."))
     p("<h3>Baseline: un solo agente</h3>")
     p("<p><code>revisor/baseline.py</code>. Un agente con las cuatro herramientas y un prompt general con las cinco dimensiones. Es la skill <code>review-custom</code> llevada a LangGraph, con el mismo modelo que el resto: entre el baseline y el sistema multiagente solo cambia el reparto del trabajo.</p>")
-    p(pre("inicio → preparar → reviewer único → informe → fin"))
+    p(diagrama("baseline", "Figura 2. El baseline. En azul el agente, en gris los pasos que son código sin modelo."))
     p("<h3>Capa multiagente</h3>")
-    p(pre("""            ┌→ reviewer de bugs ───────┐
-            ├→ reviewer de reglas ─────┤
-preparar ───┼→ reviewer de clean code ─┼→ unir → comprobar ─┬→ verificar ─┬→ sintetizar → fin
-            ├→ reviewer de eficiencia ─┤  (código) (código)  │  (modelo)   │
-            └→ reviewer de impacto ────┘                     └─────────────┘
-                                                   sin hallazgos pendientes"""))
+    p(diagrama("multiagente", "Figura 3. El sistema multiagente. En azul los siete agentes, en gris los pasos que son código sin modelo."))
     p(tabla(["agente", "qué hace", "herramientas"], [
         ["Reviewer de bugs", "Errores de lógica, casos borde, tests que no afirman nada", "leer, grep, checks"],
-        ["Reviewer de reglas", "Incumplimientos de las normas; solo cita lo que el RAG le devolvió", "RAG, leer, grep"],
+        ["Reviewer de reglas", "Incumplimientos de las normas. Solo cita lo que el RAG le devolvió", "RAG, leer, grep"],
         ["Reviewer de clean code", "Código sin uso, duplicación, números mágicos", "grep, leer, RAG"],
         ["Reviewer de eficiencia", "Trabajo repetido dentro de bucles", "leer, RAG, grep"],
         ["Reviewer de impacto", "Lo que el cambio rompe fuera del diff", "grep, leer, checks"],
         ["Verificador", "Recibe solo la ficha, sin la conversación del reviewer, y la confirma, la deja como plausible o la descarta", "leer, grep, checks"],
         ["Sintetizador", "Redacta el informe con lo que quedó", "ninguna"],
     ]))
-    p("<p>Los cinco reviewers corren en paralelo y no se ven entre sí: cada uno deja fichas en el estado compartido. Tres nodos son código sin modelo: <i>unir</i> quita los repetidos (mismo archivo, línea y dimensión); <i>comprobar</i> descarta un hallazgo si el archivo no existe, si la evidencia no es una copia literal de una línea, o si cita una regla que el RAG no devolvió en esa corrida; y, tras el sintetizador, una comprobación de procedencia rechaza el informe si menciona una ubicación o una regla que no viene de ningún hallazgo (a la segunda vez se entrega un informe armado por código).</p>")
+    p("<p>En la primera versión, el paso de unir juntaba hallazgos de líneas vecinas y de dimensiones distintas, y con eso se perdían problemas reales. Se corrigió después de ver las trazas de la primera medición. Los cinco reviewers corren en paralelo y no se ven entre sí: cada uno deja fichas en el estado compartido. Tres nodos son código sin modelo: <i>unir</i> quita los repetidos (mismo archivo, línea y dimensión); <i>comprobar</i> descarta un hallazgo si el archivo no existe, si la evidencia no es una copia literal de una línea, o si cita una regla que el RAG no devolvió en esa corrida. Y, tras el sintetizador, una comprobación de procedencia rechaza el informe si menciona una ubicación o una regla que no viene de ningún hallazgo (a la segunda vez se entrega un informe armado por código).</p>")
 
     p("<h3>Las herramientas</h3>")
     p(tabla(["herramienta", "qué hace", "límite, fijado en el código de la herramienta"], [
         ["<code>leer_archivo</code>", "Un tramo de un archivo, con números de línea", "No sale de la raíz del repo ni lee <code>.env</code>; 200 líneas por llamada"],
         ["<code>grep_repo</code>", "Dónde se define o se usa algo, también fuera del diff", "Solo lectura; 40 coincidencias"],
         ["<code>buscar_reglas</code>", "RAG: los fragmentos de reglas y documentación más parecidos a una pregunta, con su id", "4 fragmentos de hasta 1 200 caracteres"],
-        ["<code>correr_checks</code>", "Ejecuta lint, tests o tipos", "El modelo elige entre tres nombres; el comando lo pone el perfil. Entorno sin variables, 120 s"],
+        ["<code>correr_checks</code>", "Ejecuta lint, tests o tipos", "El modelo elige entre tres nombres. El comando lo pone el perfil. Entorno sin variables, 120 s"],
     ]))
 
     perfil = cargar_perfil(RAIZ / "repo-prueba")
@@ -129,21 +119,21 @@ preparar ───┼→ reviewer de clean code ─┼→ unir → comprobar ─
     p("<h3>El RAG</h3>")
     p(f"<p>El índice tiene {sum(cuenta.values())} fragmentos, uno por sección de cada documento, con embeddings de bge-m3 y búsqueda por coseno en memoria. No hay búsqueda web en vivo: un script descarga una lista cerrada de fuentes, aprobada a mano, y anota fecha y huella de cada una (<code>revisor/rag/fuentes/DESCARGA.json</code>). Un agente evaluado contra la web viva mediría la web.</p>")
     p(tabla(["fuente", "tipo", "fragmentos", "descargada"], filas, numericas=(2,)))
-    p("<p class='nota'><code>clean-code-typescript</code> es una adaptación comunitaria del libro <i>Clean Code</i>, no documentación oficial. La regla R15 (no repetir en un bucle lo que no cambia) no tiene fuente externa: es convención del repo.</p>")
+    p("<p><code>clean-code-typescript</code> es una adaptación comunitaria del libro <i>Clean Code</i>, no documentación oficial. La regla R15 (no repetir en un bucle lo que no cambia) no tiene fuente externa: es convención del repo.</p>")
 
     p("<h3>Las seis correcciones, en este sistema</h3>")
     p(tabla(["corrección del enunciado", "dónde está"], [
-        ["1. Catálogo con contrato", "<code>herramientas.py</code>: cada herramienta lleva nombre, descripción (qué devuelve, cuándo usarla y cuándo no) y esquema; viajan por function calling nativo"],
+        ["1. Catálogo con contrato", "<code>herramientas.py</code>: cada herramienta lleva nombre, descripción (qué devuelve, cuándo usarla y cuándo no) y esquema. Viajan por function calling nativo"],
         ["2. Solo lectura garantizada", "Ninguna herramienta escribe; <code>leer_archivo</code> confina la ruta resuelta a la raíz; <code>correr_checks</code> no acepta comandos"],
         ["3. Los límites viven en el servidor", "Constantes del módulo, no parámetros: <code>test_leer_archivo_no_entrega_mas_del_tope_aunque_se_pida</code>"],
         ["4. Las herramientas comparten fuente", "Decisión: los agentes no se pasan texto libre sino la ficha <code>Hallazgo</code> del estado (<code>estado.py</code>). El verificador recibe la ficha y no la conversación"],
         ["5. Un error es una observación", "<code>bucle.py</code>: herramienta inexistente, argumentos inválidos o excepción vuelven al modelo como <code>{\"error\": …}</code>"],
-        ["6. La traza se escribe en todo camino", "<code>traza.py</code>: cada evento va al disco en el momento; registra agente, modelo, tokens, latencia y error, y qué pidió, observó y respondió el modelo"],
+        ["6. La traza se escribe en todo camino", "<code>traza.py</code>: cada evento va al disco en el momento. Registra agente, modelo, tokens, latencia y error, y qué pidió, observó y respondió el modelo"],
     ]))
     p("<p>Contrato con el Taller 4: las clases de <code>revisor/sistemas.py</code> se instancian sin argumentos y <code>.run(pregunta)</code> devuelve <code>answer</code>, <code>trace</code>, <code>status</code>, <code>model</code> y <code>usage</code>. La pregunta es la ruta de un parche.</p>")
 
     p("<h3>Dos corridas</h3>")
-    p("<p class='nota'>Caso C01 con el baseline, y caso C11 con el sistema multiagente (se muestran los primeros pasos; las trazas completas están en <code>resultados/trazas/</code>).</p>")
+    p("<p>Las dos tablas siguientes muestran los primeros pasos de dos corridas, tomados de sus trazas. La primera es el caso C01 con el baseline y la segunda el caso C11 con el sistema multiagente. Las trazas completas están en <code>resultados/trazas/</code>.</p>")
     p(pasos_de("resultados/trazas/baseline/C01.jsonl", maximo=12))
     p(pasos_de("resultados/trazas/multiagente/C11.jsonl", maximo=22))
 
@@ -158,12 +148,12 @@ def parte2a(p, tabla, datos, RAIZ, **k):
         v = verificacion[caso["id"]]
         filas.append([caso["id"], caso["tipo"], caso["dimension"], SEMBRADO[caso["id"]],
                       v["detalle"], "sí" if v["checks_en_verde"] == "True" else "no"])
-    p("<p>Son 14 casos. Cada uno es un parche con la descripción del cambio encima, como un PR, que el evaluador aplica sobre una copia limpia del repo. Los genera <code>evaluacion/construir_casos.py</code>; las líneas esperadas se calculan buscando un texto en el archivo ya modificado, no se escriben a mano.</p>")
+    p("<p>Son 14 casos. Cada uno es un parche con la descripción del cambio encima, como un PR, que el evaluador aplica sobre una copia limpia del repo. Los genera <code>evaluacion/construir_casos.py</code>. Las líneas esperadas se calculan buscando un texto en el archivo ya modificado, no se escriben a mano.</p>")
     p(tabla(["caso", "tipo", "dimensión", "qué se sembró", "cómo se demuestra", "lint, tipos y tests en verde"], filas))
     silenciosos = sum(1 for c in golden if c["tipo"] in ("simple", "multi", "adversarial") and verificacion[c["id"]]["checks_en_verde"] == "True")
     con_problema = sum(1 for c in golden if c["tipo"] != "negativo")
-    p(f"<p>La verdad no es una etiqueta: <code>evaluar.py --verificar</code> la ejecuta. Para un bug, un test oculto que falla con el parche (y pasa sin él cuando el código ya existía); para una regla, un patrón en el archivo o un check que falla; para el código sin uso, que el símbolo aparezca una sola vez. Los 14 casos pasan esa comprobación. En {silenciosos} de los {con_problema} casos con problema, lint, tipos y tests quedan en verde con el problema dentro.</p>")
-    p("<p>Un hallazgo cuenta como acierto si cae en el archivo y el rango de líneas esperados y, cuando el caso lo pide, menciona lo que debe (por ejemplo «descuento»). Aparte se cuenta si citó la regla correcta. Los hallazgos fuera de todo rango esperado se cuentan como «no esperados»: no se juzga si son falsos, así que solo los dos casos limpios miden falsas alarmas de verdad.</p>")
+    p(f"<p>La verdad no es una etiqueta: <code>evaluar.py --verificar</code> la ejecuta. Para un bug, un test oculto que falla con el parche (y pasa sin él cuando el código ya existía). Para una regla, un patrón en el archivo o un check que falla. Para el código sin uso, que el símbolo aparezca una sola vez. Los 14 casos pasan esa comprobación. En {silenciosos} de los {con_problema} casos con problema, lint, tipos y tests quedan en verde con el problema dentro.</p>")
+    p("<p>Un hallazgo cuenta como acierto si cae en el archivo y el rango de líneas esperados y, cuando el caso lo pide, menciona lo que debe (por ejemplo &quot;descuento&quot;). Aparte se cuenta si citó la regla correcta. Los hallazgos fuera de todo rango esperado se cuentan como &quot;no esperados&quot;: no se juzga si son falsos, así que solo los dos casos limpios miden falsas alarmas de verdad.</p>")
 
 
 def _tabla_sistemas(tabla, datos, conjunto="", sistemas=None):
@@ -215,10 +205,10 @@ def _tabla_por_caso(tabla, datos, conjunto="", sistemas=None):
 
 def parte2b(p, tabla, datos, **k):
     p("<h3>2.b — Las métricas</h3>")
-    p("<p>Todos los sistemas se midieron con el mismo golden set, el mismo modelo y el mismo commit, tres veces cada uno, porque el modelo no es determinista. Cada celda es el promedio de las tres corridas y, entre paréntesis, el mínimo y el máximo; un solo número significa que las tres dieron lo mismo. Las cifras salen de <code>resultados/resultados_&lt;sistema&gt;[_rN].csv</code>.</p>")
+    p("<p>Al inicio cada sistema se midió una sola vez, apenas se terminaba de construir. Así el baseline dio 11 de 14 y el sistema multiagente dio primero 11 y, después de corregir un error, 14. Pero cuando se volvió a medir todo junto, el mismo baseline dio 13. Eso mostró que una sola corrida no alcanza, porque el modelo no responde siempre igual. Por eso las tablas de esta sección salen de una medición final en la que todos los sistemas se midieron con el mismo golden set, el mismo modelo y el mismo commit, tres veces cada uno. Cada celda es el promedio de las tres corridas y, entre paréntesis, el mínimo y el máximo. Un solo número significa que las tres dieron lo mismo. Las cifras salen de <code>resultados/resultados_&lt;sistema&gt;[_rN].csv</code>.</p>")
     p(_tabla_sistemas(tabla, datos))
-    p("<p class='nota'>Baseline: un agente con un prompt general. «Con las instrucciones de los reviewers»: el mismo agente único con las instrucciones detalladas de los cinco reviewers juntas (control). Sin verificador y sin RAG: el sistema multiagente con esa pieza apagada (ablaciones). Razonamiento medio y alto: el parámetro <code>reasoning_effort</code> del modelo, que por defecto está en <code>low</code> (extensión, Parte 4). Los negativos no entran en «problemas encontrados»: no hay nada que acertar.</p>")
-    p("<p>Aciertos por caso, sumando las tres corridas (3/3 es «lo encontró las tres veces»):</p>")
+    p("<p>Baseline: un agente con un prompt general. &quot;Con las instrucciones de los reviewers&quot;: el mismo agente único con las instrucciones detalladas de los cinco reviewers juntas (control). Sin verificador y sin RAG: el sistema multiagente con esa pieza apagada (ablaciones). Razonamiento medio y alto: el parámetro <code>reasoning_effort</code> del modelo, que por defecto está en <code>low</code> (extensión, Parte 4). Los negativos no entran en &quot;problemas encontrados&quot;: no hay nada que acertar.</p>")
+    p("<p>Aciertos por caso, sumando las tres corridas (3/3 es &quot;lo encontró las tres veces&quot;):</p>")
     p(_tabla_por_caso(tabla, datos))
 
     r = datos.resumen_por_sistema()
@@ -245,28 +235,28 @@ def parte2b(p, tabla, datos, **k):
 def parte2c(p, pasos_de, **k):
     p("<h3>2.c — Análisis de fallos</h3>")
     p("<p>Se eligieron los tres peores resultados del sistema entregado y de su baseline, y para cada uno se señala la pieza a la que apunta la traza.</p>")
-    p("<p><b>1. Caso N01 con el sistema multiagente: reporta algo en un cambio que estaba bien.</b> El cambio añade un método <code>cantidadTotal()</code> con sus tests. En dos de las tres corridas el reviewer de clean code reportó que el método «no tiene ningún consumidor en producción», y el verificador lo confirmó.</p>")
+    p("<p><b>1. Caso N01 con el sistema multiagente: reporta algo en un cambio que estaba bien.</b> El cambio añade un método <code>cantidadTotal()</code> con sus tests. En dos de las tres corridas el reviewer de clean code reportó que el método &quot;no tiene ningún consumidor en producción&quot;, y el verificador lo confirmó.</p>")
     p(pasos_de("resultados/trazas/multiagente/N01.jsonl", maximo=40, solo=("reviewer_clean_code", "verificador")))
-    p("<p>Lo que dice el hallazgo es verdad, porque todavía nadie llama a ese método. El problema está en la instrucción que le di al reviewer de clean code. Le pedí reportar todo lo exportado que «solo aparece donde se define», y esa instrucción la escribí pensando en el caso C09. Aquí se aplica a un método nuevo que viene con sus tests, que es como empieza cualquier funcionalidad. De este caso aprendí dos cosas. La primera es que el verificador revisa si lo que se afirma es verdad, pero no si eso es realmente un problema. La segunda es que el caso que yo consideraba «limpio» no lo era del todo según la regla R10 como la escribí, así que también hay que corregir el golden set. La parte que falla es el prompt de ese reviewer, y también el propio caso.</p>")
+    p("<p>Lo que dice el hallazgo es verdad, porque todavía nadie llama a ese método. El problema está en la instrucción que le di al reviewer de clean code. Le pedí reportar todo lo exportado que &quot;solo aparece donde se define&quot;, y esa instrucción la escribí pensando en el caso C09. Aquí se aplica a un método nuevo que viene con sus tests, que es como empieza cualquier funcionalidad. De este caso aprendí dos cosas. La primera es que el verificador revisa si lo que se afirma es verdad, pero no si eso es realmente un problema. La segunda es que el caso que yo consideraba &quot;limpio&quot; no lo era del todo según la regla R10 como la escribí, así que también hay que corregir el golden set. La parte que falla es el prompt de ese reviewer, y también el propio caso.</p>")
     p("<p><b>2. Caso C11 con el baseline: no ve que el cambio afecta a otro módulo.</b> El cambio hace que <code>porcentajeDe</code> trunque en vez de redondear. La descripción habla solo de descuentos, pero esa función también se usa para calcular el impuesto de los pedidos.</p>")
     p(pasos_de("resultados/trazas/baseline/C11.jsonl", maximo=12))
-    p("<p>El agente sí tuvo la información que necesitaba, porque su búsqueda le devolvió el uso en <code>pedidos.ts</code> donde se calcula el impuesto. Pero después corrió los tests, vio que pasaban y concluyó que el cambio «es correcto y está bien hecho». Es lo mismo que mostró la Parte 0.c, pero ahora dentro del agente: como los tests pasaron, dio el cambio por bueno. La parte que falla aquí es el modelo, y también que nadie tenía como tarea revisar el impacto. En el sistema multiagente, el reviewer de impacto solo se dedica a ver qué pasa con cada lugar donde se usa lo que cambió, y encontró este caso en todas las corridas.</p>")
+    p("<p>El agente sí tuvo la información que necesitaba, porque su búsqueda le devolvió el uso en <code>pedidos.ts</code> donde se calcula el impuesto. Pero después corrió los tests, vio que pasaban y concluyó que el cambio &quot;es correcto y está bien hecho&quot;. Es lo mismo que mostró la Parte 0.c, pero ahora dentro del agente: como los tests pasaron, dio el cambio por bueno. La parte que falla aquí es el modelo, y también que nadie tenía como tarea revisar el impacto. En el sistema multiagente, el reviewer de impacto solo se dedica a ver qué pasa con cada lugar donde se usa lo que cambió, y encontró este caso en todas las corridas.</p>")
     p("<p><b>3. Caso G01 con un agente y razonamiento medio, segunda corrida: se pierde toda la revisión.</b> Es el peor resultado de todas las mediciones. Encontró 0 de 6 problemas en un PR grande que el mismo sistema resolvió completo en las otras dos corridas.</p>")
     p(pasos_de("resultados/trazas/baseline_razonamiento_medio_grande_r2/G01.jsonl", maximo=16, errores=True))
-    p("<p>El agente sí hizo la revisión: leyó los archivos y resumió lo que había encontrado. El fallo fue al final, cuando se le piden los hallazgos en el formato fijo. El modelo gastó dos veces los 8 192 tokens que tenía de salida solo razonando y no devolvió nada. El sistema anotó el error en la traza, pero entregó «sin hallazgos» con estado <code>completed</code>, o sea, una revisión vacía que parece una revisión de un cambio sin problemas. Es el mismo tipo de falla silenciosa de la Parte 0.a, y solo me di cuenta porque revisé la traza. La parte que falla es el modelo y también el sistema, que no avisaba. Se corrigieron dos cosas (Parte 4): ahora en esa situación el informe sale con un aviso y con estado <code>incompleto</code>, y el reintento ya no repite la misma llamada. Este caso también muestra una ventaja del sistema multiagente: si a uno de sus siete agentes le pasa esto, se pierde una parte de la revisión, pero no toda.</p>")
+    p("<p>El agente sí hizo la revisión: leyó los archivos y resumió lo que había encontrado. El fallo fue al final, cuando se le piden los hallazgos en el formato fijo. El modelo gastó dos veces los 8 192 tokens que tenía de salida solo razonando y no devolvió nada. El sistema anotó el error en la traza, pero entregó &quot;sin hallazgos&quot; con estado <code>completed</code>, o sea, una revisión vacía que parece una revisión de un cambio sin problemas. Es el mismo tipo de falla silenciosa de la Parte 0.a, y solo me di cuenta porque revisé la traza. La parte que falla es el modelo y también el sistema, que no avisaba. Se corrigieron dos cosas (Parte 4): ahora en esa situación el informe sale con un aviso y con estado <code>incompleto</code>, y el reintento ya no repite la misma llamada. Este caso también muestra una ventaja del sistema multiagente: si a uno de sus siete agentes le pasa esto, se pierde una parte de la revisión, pero no toda.</p>")
 
 
 def parte3(p, tabla, archivo, datos, **k):
     p("<h2>Parte 3 — Frenos, probados haciéndolos saltar</h2>")
     p("<p>Cuatro frenos, todos en código y fuera del control del modelo. Se forzaron con un modelo de guion (<code>evaluacion/guion.py</code>) que se porta mal a propósito, así que no gastaron nada: <code>python -m evaluacion.forzar_frenos</code>. Hay una traza por freno en <code>resultados/frenos/</code>.</p>")
     p(tabla(["freno", "dónde", "cómo se forzó", "qué pasó"], [
-        ["Tope de pasos", "<code>bucle.py</code>", "El guion pide una búsqueda distinta en cada turno y nunca termina; límite 4", "Corta al cuarto paso; cada llamada pendiente recibe su resultado y el agente entrega el hallazgo que tenía"],
-        ["Presupuesto de tokens", "<code>traza.py</code>, antes de cada llamada", "Cada turno cuesta 30 000 tokens; límite 120 000 con 35 000 de reserva", "Corta a los 91 500; la reserva alcanza para extraer el hallazgo"],
+        ["Tope de pasos", "<code>bucle.py</code>", "El guion pide una búsqueda distinta en cada turno y nunca termina. Límite 4", "Corta al cuarto paso. Cada llamada pendiente recibe su resultado y el agente entrega el hallazgo que tenía"],
+        ["Presupuesto de tokens", "<code>traza.py</code>, antes de cada llamada", "Cada turno cuesta 30 000 tokens. Límite 120 000 con 35 000 de reserva", "Corta a los 91 500. La reserva alcanza para extraer el hallazgo"],
         ["Detector de repetición", "<code>bucle.py</code>", "El guion pide siempre la misma búsqueda", "La tercera llamada idéntica no se ejecuta y el agente se detiene"],
-        ["Tiempo máximo de un check", "<code>herramientas.py</code>", "El comando de tests duerme 60 s; límite 2 s", "Se mata el grupo de procesos; el modelo recibe el error como observación y sigue"],
+        ["Tiempo máximo de un check", "<code>herramientas.py</code>", "El comando de tests duerme 60 s. Límite 2 s", "Se mata el grupo de procesos. El modelo recibe el error como observación y sigue"],
     ]))
     p(archivo("resultados/frenos/salida.txt", desde="=== Presupuesto", hasta="=== Detector"))
-    p("<p>En los cuatro casos el informe sale con un aviso arriba y la corrida queda con estado <code>incompleto</code>; nunca devuelve una respuesta vacía. La reserva del presupuesto existe para eso: el trabajo normal puede gastar hasta el límite menos la reserva, y solo los pasos de cierre (extraer los hallazgos y redactar) pueden usar el resto. Sin ella, una corrida que agota el presupuesto pierde todo lo que gastó.</p>")
+    p("<p>En los cuatro casos el informe sale con un aviso arriba y la corrida queda con estado <code>incompleto</code>. Nunca devuelve una respuesta vacía. La reserva del presupuesto existe para eso: el trabajo normal puede gastar hasta el límite menos la reserva, y solo los pasos de cierre (extraer los hallazgos y redactar) pueden usar el resto. Sin ella, una corrida que agota el presupuesto pierde todo lo que gastó.</p>")
     p("<p>Estos frenos tienen límites. El presupuesto se revisa antes de cada llamada, cuando todavía no se sabe cuánto va a costar, así que puede pasarse por una llamada. El detector de repetición solo detecta la llamada idéntica. No detecta a un agente que alterna entre dos llamadas, ni al que cambia un poco los argumentos cada vez. Para esos casos queda el tope de pasos. No hay un freno de confirmación humana porque ninguna herramienta escribe, pero sería obligatorio cuando el sistema aplique parches (ver Trabajo futuro).</p>")
 
     c = datos.calibracion()
@@ -309,7 +299,7 @@ def parte4(p, tabla, datos, **k):
     p("<p>La extensión se eligió después de medir el baseline. La pregunta era si, antes de añadir más agentes, alcanzaba con que un solo agente razonara más. Después se hicieron dos pruebas más, que salieron de dudas que dejaron los primeros resultados: qué pasa con cambios más difíciles, y por qué algunas corridas tardaban tanto.</p>")
 
     p("<h3>4.1 — El nivel de razonamiento</h3>")
-    p("<p>El modelo de la H200 acepta un parámetro <code>reasoning_effort</code> que le indica cuánto «pensar» antes de responder. Todo el taller corre con <code>low</code>. Aquí se cambia solo ese valor, con el mismo golden set.</p>")
+    p("<p>El modelo de la H200 acepta un parámetro <code>reasoning_effort</code> que le indica cuánto &quot;pensar&quot; antes de responder. Todo el taller corre con <code>low</code>. Aquí se cambia solo ese valor, con el mismo golden set.</p>")
     p(tabla(["agentes", "razonamiento", "encontrados, 14 casos", "hallazgos en casos limpios", "tokens de entrada", "segundos", "encontrados, casos difíciles (4.2)"], [
         fila_razonamiento("baseline", "uno", "bajo"),
         fila_razonamiento("baseline_razonamiento_medio", "uno", "medio"),
@@ -380,6 +370,7 @@ def conclusiones(p, **k):
       "<li>De las piezas del sistema, el RAG sí valió la pena y el verificador no. El RAG permite citar la regla y reduce los hallazgos de más. El verificador revisa si lo que se afirma es verdad, pero no si es un problema, y usa un tercio de los tokens.</li>"
       "<li>Lo que más ayudó a no llegar a conclusiones equivocadas fue lo que no depende del modelo: las comprobaciones en código, las trazas y volver a medir con un control. Varias conclusiones que tuve en el camino resultaron falsas cuando las revisé así.</li>"
       "</ol>")
+    p("<p>De todo este recorrido me quedo con dos cosas. La primera es que varias conclusiones que en algún momento parecían claras (que el baseline era mucho peor, que sin RAG se perdía un caso, que solo el multiagente resolvía el caso complejo) resultaron ser ruido entre corridas, un prompt mal adaptado o una medición que faltaba. La segunda es que todas se detectaron de la misma forma: teniendo las trazas y volviendo a medir con un control.</p>")
 
 
 def parte5(p, datos, **k):
@@ -390,23 +381,23 @@ def parte5(p, datos, **k):
     c = datos.calibracion()
     peor_pasos = max(c["pasos"]["baseline"])
     p("<h2>Parte 5 — Reflexión</h2>")
-    p("<p><b>1. ¿En qué es un agente basado en objetivos y en qué no?</b> Se parece a un agente basado en objetivos en que busca llegar a un resultado (entregar un review) y elige sus acciones según lo que va viendo. Nadie le dice qué archivo leer ni qué buscar. Pero no lo es del todo, porque el objetivo no está escrito en ningún lugar que el programa pueda comprobar. El objetivo está como texto en el prompt (<code>agentes/prompts.py</code>) y no hay una prueba que diga «ya se cumplió». Dentro del bucle, el que decide que terminó es el modelo, cuando deja de pedir herramientas (la función <code>siguiente</code> en <code>agentes/bucle.py</code>), o un freno que lo corta. Tampoco hace un plan, decide un paso a la vez. Lo que sí decide el código es qué se publica: <code>comprobar_en_codigo</code> y el veredicto del verificador (<code>agentes/verificador.py</code>), y la revisión de procedencia del informe (<code>agentes/sintetizador.py</code>). En resumen, el objetivo lo pone una persona, el modelo decide cuándo terminó y el código decide qué se publica.</p>")
+    p("<p><b>1. ¿En qué es un agente basado en objetivos y en qué no?</b> Se parece a un agente basado en objetivos en que busca llegar a un resultado (entregar un review) y elige sus acciones según lo que va viendo. Nadie le dice qué archivo leer ni qué buscar. Pero no lo es del todo, porque el objetivo no está escrito en ningún lugar que el programa pueda comprobar. El objetivo está como texto en el prompt (<code>agentes/prompts.py</code>) y no hay una prueba que diga &quot;ya se cumplió&quot;. Dentro del bucle, el que decide que terminó es el modelo, cuando deja de pedir herramientas (la función <code>siguiente</code> en <code>agentes/bucle.py</code>), o un freno que lo corta. Tampoco hace un plan, decide un paso a la vez. Lo que sí decide el código es qué se publica: <code>comprobar_en_codigo</code> y el veredicto del verificador (<code>agentes/verificador.py</code>), y la revisión de procedencia del informe (<code>agentes/sintetizador.py</code>). En resumen, el objetivo lo pone una persona, el modelo decide cuándo terminó y el código decide qué se publica.</p>")
     p(f"<p><b>2. Con <code>resultados/</code> delante.</b> En los mismos 14 casos, el baseline usó en promedio {datos.miles(tin_b)} tokens de entrada en {ll_b:.0f} llamadas ({datos.miles(tin_b / ll_b)} por llamada). El sistema multiagente usó {datos.miles(tin_m)} en {ll_m:.0f} llamadas ({datos.miles(tin_m / ll_m)} por llamada). O sea, {datos.dec(tin_m / tin_b)} veces más tokens con {datos.dec(ll_m / ll_b)} veces más llamadas. Si duplicara el tope de pasos de 12 a 24, en el peor caso los tokens de entrada no se duplicarían sino que crecerían hasta casi cuatro veces, porque en cada paso se reenvía todo el historial y lo que se va sumando es 1 + 2 + … + n observaciones. En la práctica no cambiaría nada, por dos razones que salen de mis cifras. La primera es que el agente más ocupado del baseline hizo como máximo {peor_pasos} llamadas contando la de cierre, así que no llega al tope. La segunda es que el presupuesto de tokens es un freno aparte y no cambia al mover el de pasos. Lo que cambiaría es cuál de los dos frenos salta primero si una corrida se descontrola.</p>")
-    p("<p><b>3. Un despliegue que hace daño.</b> El siguiente paso de este trabajo es un agente que aplica parches y hace commits en el repositorio de mi trabajo. Ahí el daño sería real: código incorrecto que llega a una rama compartida, o un PR de otra persona con un test malicioso que <code>correr_checks</code> ejecuta. En el servidor pondría lo que aquí sí protegió: los comandos en una lista cerrada, el proceso sin variables de entorno y sin red, la escritura limitada a una copia, y las comprobaciones en código antes de cualquier modelo. A una persona le dejaría aprobar el plan y cada commit, pero como una pausa del grafo y no como una instrucción en el prompt. La Parte 0 mostró lo que solo parecía proteger: los tests en verde (0.c) y la instrucción de «no inventes» en el prompt (0.a). En el caso adversarial el modelo ignoró el comentario que pedía no reportar nada, pero eso lo decidió el modelo y no es una garantía.</p>")
+    p("<p><b>3. Un despliegue que hace daño.</b> El siguiente paso de este trabajo es un agente que aplica parches y hace commits en el repositorio de mi trabajo. Ahí el daño sería real: código incorrecto que llega a una rama compartida, o un PR de otra persona con un test malicioso que <code>correr_checks</code> ejecuta. En el servidor pondría lo que aquí sí protegió: los comandos en una lista cerrada, el proceso sin variables de entorno y sin red, la escritura limitada a una copia, y las comprobaciones en código antes de cualquier modelo. A una persona le dejaría aprobar el plan y cada commit, pero como una pausa del grafo y no como una instrucción en el prompt. La Parte 0 mostró lo que solo parecía proteger: los tests en verde (0.c) y la instrucción de &quot;no inventes&quot; en el prompt (0.a). En el caso adversarial el modelo ignoró el comentario que pedía no reportar nada, pero eso lo decidió el modelo y no es una garantía.</p>")
 
 
 def evolucion(p, tabla, **k):
-    p("<h2>Cómo evolucionó el trabajo</h2>")
-    p("<p>El resultado final no salió al primer intento. Se siguió la regla del curso (baseline → medir → extender → medir) y casi todas las mediciones obligaron a cambiar algo, ya sea el código, las pruebas o la forma de medir. La tabla muestra ese recorrido en orden. Cada fila corresponde a uno o más commits del repositorio.</p>")
+    p("<h2>Cómo se hizo el trabajo</h2>")
+    p("<p>El trabajo no salió al primer intento. Se siguió la regla del curso, que es hacer un baseline, medirlo, extenderlo y volver a medir, y casi todas las mediciones obligaron a cambiar algo, ya sea el código, las pruebas o la forma de medir. La tabla resume ese recorrido en el orden en que pasó, y el resto del informe sigue ese mismo orden. Cada fila corresponde a uno o más commits del repositorio.</p>")
     p(tabla(["paso", "qué se hizo", "qué mostró la medición", "qué se cambió por eso"], [
         ["1", "Parte 0, antes de construir nada",
          "El modelo de la H200 gastó los 4 096 tokens en razonar y devolvió una respuesta vacía, sin error",
          "El nivel de razonamiento pasó a ser un ajuste del <code>.env</code> y toda llamada detecta la respuesta vacía y reintenta (<code>revisor/llamada.py</code>)"],
         ["2", "Primer diseño: cuatro dimensiones (bugs, reglas, código muerto, impacto) y un RAG solo con las 12 reglas del repo",
          "Antes de medir, al revisar el diseño: un review real también mira clean code y eficiencia, y con 15 fragmentos el RAG casi sobraba (las reglas caben en el prompt)",
-         "Cinco dimensiones; reglas R13 a R16 con su fuente; el índice pasó de 15 a 206 fragmentos con documentación descargada"],
+         "Cinco dimensiones. Reglas R13 a R16 con su fuente. El índice pasó de 15 a 206 fragmentos con documentación descargada"],
         ["3", "Baseline de un agente y golden set de 14 casos",
-         "11 de 14 (commit <code>dbe8dc9</code>). Las trazas mostraron los tres fallos: vio con grep que una función no se usaba y no lo reportó (C09); no miró qué hacía la llamada dentro del bucle (C10); los tests pasaron y dio el cambio por bueno (C11)",
+         "11 de 14 (commit <code>dbe8dc9</code>). Las trazas mostraron los tres fallos: vio con grep que una función no se usaba y no lo reportó (C09). No miró qué hacía la llamada dentro del bucle (C10). Los tests pasaron y dio el cambio por bueno (C11)",
          "Se escribieron los cinco reviewers especializados, con instrucciones que atacan esos tres fallos. Fue un error de método, que se corrige en el paso 6"],
         ["4", "Capa multiagente: cinco reviewers, verificador y sintetizador",
          "11 de 14 en la primera corrida (no se commiteó). Las trazas mostraron que el paso de unir fusionaba líneas vecinas y dimensiones distintas, y perdía hallazgos reales",
@@ -416,39 +407,29 @@ def evolucion(p, tabla, **k):
          "Al preguntarse si estaba bien no haber adaptado los prompts: no lo estaba. Se había quitado la herramienta pero los prompts seguían pidiéndola. Corregido, sin RAG da 14 de 14 y ninguna incompleta: la conclusión anterior era un efecto del prompt"],
         ["6", "Revisión del método, buscando más errores como el anterior",
          "Cuatro: instrucciones de los reviewers sacadas del examen, extensión que comparaba dos cambios a la vez, trazas sin contenido, y sistemas medidos con versiones distintas del código",
-         "Control con un agente único que recibe esas mismas instrucciones; multiagente con razonamiento alto; trazas con lo que el modelo pidió, observó y respondió; una medición final de todo con un mismo commit"],
+         "Control con un agente único que recibe esas mismas instrucciones. Multiagente con razonamiento alto. Trazas con lo que el modelo pidió, observó y respondió. Una medición final de todo con un mismo commit"],
         ["7", "Medición final de los siete sistemas",
          "El mismo baseline que había dado 11 dio 13 de 14: la diferencia entre dos corridas era tan grande como las diferencias entre sistemas que se estaban interpretando",
-         "Tres repeticiones por sistema; las tablas muestran promedio y rango"],
+         "Tres repeticiones por sistema. Las tablas muestran promedio y rango"],
         ["8", "Pregunta que quedaba: ¿y con código más difícil?",
          "El repo de prueba es pequeño y un solo agente lo lee casi entero",
-         "Dos «PR grandes» que juntan varios casos y un caso complejo con herencia, inyección de dependencias y caché (Parte 4.2)"],
+         "Dos &quot;PR grandes&quot; que juntan varios casos y un caso complejo con herencia, inyección de dependencias y caché (Parte 4.2)"],
         ["9", "Medición de los casos difíciles",
          "El sistema multiagente sí se separa del baseline (13,7 frente a 8,7 de 14). Pero tarda mucho más de lo que justifica el tamaño de los cambios",
          "Se revisaron las trazas llamada por llamada: cerca de la mitad del tiempo se iba en llamadas que no devolvían nada. Se bajó el cupo de salida, se añadió un límite de tiempo por llamada y se cambió el reintento (Parte 4.3)"],
         ["10", "Razonamiento medio, que se había descartado con una sola llamada de prueba",
          "Un solo agente con razonamiento medio encontró los 14 problemas en sus tres corridas, y los tres bugs del caso complejo",
-         "La conclusión del taller pasó de «el multiagente gana en código difícil» a «primero conviene ajustar el agente único»"],
+         "La conclusión del taller pasó de &quot;el multiagente gana en código difícil&quot; a &quot;primero conviene ajustar el agente único&quot;"],
     ]))
     p("<p><b>Cómo fueron cambiando las pruebas.</b> Los casos de prueba tampoco fueron los mismos desde el inicio. Primero hice 14 casos pequeños, uno o dos por cada tipo de problema. Sirvieron para ver en qué fallaba el baseline (C09, C10 y C11), pero después casi todos los sistemas los resolvían completos y ya no permitían diferenciarlos. Los dos casos que estaban bien (N01 y N02) sirvieron para ver que el multiagente a veces reporta de más, y también mostraron que uno de ellos no estaba tan bien armado. Después junté varios casos en dos PR grandes (G01 y G02), pensando que con más cambios a la vez un agente único se perdería. Sí bajó, pero poco. El caso que más sirvió fue el último (G03), con herencia, inyección de dependencias y caché: ahí los agentes únicos con razonamiento bajo o alto encontraron la mitad de los bugs o menos, y el multiagente los encontró todos. Y con ese mismo caso se vio que el razonamiento medio también los encuentra.</p>")
-    p("<p>De todo este recorrido me quedo con dos cosas. La primera es que varias conclusiones que en algún momento parecían claras (que el baseline era mucho peor, que sin RAG se perdía un caso, que solo el multiagente resolvía el caso complejo) resultaron ser ruido entre corridas, un prompt mal adaptado o una medición que faltaba. La segunda es que todas se detectaron de la misma forma: teniendo las trazas y volviendo a medir con un control.</p>")
 
 
 def limitaciones(p, tabla, **k):
-    p("<h2>Errores cometidos y limitaciones</h2>")
-    p("<p>Durante el taller cometí varios errores en la forma de medir. Se detectaron y corrigieron antes de la medición final, y están en el historial de commits. Los pongo aquí porque afectan cuánto se puede confiar en cada resultado.</p>")
-    p(tabla(["error", "qué consecuencia tenía", "qué se hizo"], [
-        ["Las instrucciones de los cinco reviewers se escribieron después de ver en qué fallaba el baseline, con pistas a la medida de esos fallos", "El sistema multiagente tenía mejores instrucciones además de más agentes: no se podía saber cuál de las dos cosas mejoraba el resultado", "Se añadió un control: un solo agente con esas mismas instrucciones. Las pistas siguen saliendo del examen, para los dos sistemas"],
-        ["El paso de unir hallazgos fusionaba líneas vecinas y dimensiones distintas", "Se perdían problemas reales: la primera medición del multiagente dio 11 de 14", "Se corrigió mirando las trazas del propio golden set, y se volvió a medir"],
-        ["En la ablación sin RAG se quitó la herramienta pero los prompts seguían pidiendo usarla", "6 de 14 corridas quedaron incompletas y se «perdía» un caso: las dos cosas eran efecto del prompt contradictorio, no de la falta de RAG", "Los prompts de esa ablación ya no nombran la herramienta, y hay una prueba que lo exige"],
-        ["La extensión comparó un agente con razonamiento alto contra el multiagente con razonamiento bajo", "Dos cambios a la vez", "Se midió también el multiagente con razonamiento alto"],
-        ["Las trazas no guardaban qué devolvía cada herramienta ni qué respondía el modelo", "El análisis de fallos no tenía evidencia", "Ahora guardan un extracto de cada cosa"],
-        ["Cada sistema se midió al terminarlo, con el código en estados distintos, y una sola vez", "Se interpretaron como diferencias entre sistemas cosas que eran ruido: el mismo baseline dio 11 y después 13 de 14", "Una medición final de todos con el mismo commit, y tres repeticiones de cada uno"],
-    ]))
-    p("<p>Limitaciones que todavía tiene el trabajo:</p>")
+    p("<h2>Limitaciones</h2>")
+    p("<p>Los errores que cometí al medir están contados en la sección &quot;Cómo se hizo el trabajo&quot; (pasos 3 a 7) y se corrigieron antes de la medición final. Aparte de eso, el trabajo todavía tiene estas limitaciones:</p>")
     p("<ul>"
       "<li><b>El repositorio de prueba es pequeño</b>: unos diez archivos, que un solo agente lee casi enteros en cuatro pasos. Los tres casos difíciles de la Parte 4 son una aproximación, no un repositorio real: los escribió la misma persona que el sistema, y el caso complejo añade archivos completos en vez de modificar funciones.</li>"
-      "<li><b>Las falsas alarmas casi no se miden</b>: solo hay dos casos limpios. Los hallazgos «no esperados» de los demás casos no los juzga nadie y algunos pueden ser legítimos.</li>"
+      "<li><b>Las falsas alarmas casi no se miden</b>: solo hay dos casos limpios. Los hallazgos &quot;no esperados&quot; de los demás casos no los juzga nadie y algunos pueden ser legítimos.</li>"
       "<li><b>El acierto es por ubicación y palabras clave</b>, con rangos de líneas amplios en algunos casos: un hallazgo poco preciso que caiga en la línea correcta puede contarse como acierto.</li>"
       "<li><b>El golden set, el sistema y los prompts los hice yo</b>, y ajusté los prompts viendo los resultados del propio golden set. No hay casos guardados que no se hayan mirado.</li>"
       "<li><b>Son solo tres repeticiones.</b> Sirven para ver cuánto cambia un resultado entre corridas, pero no alcanzan para medirlo bien.</li>"
@@ -464,10 +445,10 @@ def futuro(p, **k):
     p("<ol>"
       "<li><b>Un repositorio de prueba difícil.</b> Código real, o escrito a propósito con muchas dependencias entre piezas, diffs grandes y dependencias a varios saltos, con su golden set y casos reservados que no se miren al ajustar prompts. Es la condición para saber si repartir el trabajo ayuda donde un agente solo se queda corto.</li>"
       "<li><b>Resolver feedback (<code>review-comments</code>).</b> Un comentario de PR es un hallazgo que viene de fuera: reutiliza la ficha y el verificador, y añade un clasificador y un redactor de respuestas. Publicar pasa por una pausa de aprobación.</li>"
-      "<li><b>El ciclo completo (<code>dev-cycle</code>).</b> Planificador, implementador y explicador, con este revisor como subgrafo. Los dos «STOP» de la skill (aprobar el plan y aprobar el commit) pasarían a ser nodos <code>interrupt</code> con checkpointer, de modo que no se pueda escribir en el repo sin pasar por ellos.</li>"
+      "<li><b>El ciclo completo (<code>dev-cycle</code>).</b> Planificador, implementador y explicador, con este revisor como subgrafo. Los dos &quot;STOP&quot; de la skill (aprobar el plan y aprobar el commit) pasarían a ser nodos <code>interrupt</code> con checkpointer, de modo que no se pueda escribir en el repo sin pasar por ellos.</li>"
       "<li><b>El repositorio real.</b> Un <code>perfil.toml</code> para un proyecto Angular, que es donde se quiere usar. El implementador es el rol donde más sentido tiene probar un modelo distinto, y el sistema ya lo permite.</li>"
       "</ol>")
-    p("<p>Mejoras ya identificadas en el sistema actual: verificar los hallazgos en una sola llamada en vez de un bucle por hallazgo, o quitar el verificador; hacer una búsqueda inicial de reglas compartida por todos los reviewers, porque hoy varios preguntan lo mismo; acotar la instrucción del reviewer de clean code que produce hallazgos en cambios correctos; un presupuesto de tokens por sistema y un límite de tiempo por corrida; y el tiempo máximo de un check en el perfil del repo.</p>")
+    p("<p>Mejoras ya identificadas en el sistema actual: verificar los hallazgos en una sola llamada en vez de un bucle por hallazgo, o quitar el verificador. Hacer una búsqueda inicial de reglas compartida por todos los reviewers, porque hoy varios preguntan lo mismo. Acotar la instrucción del reviewer de clean code que produce hallazgos en cambios correctos. Un presupuesto de tokens por sistema y un límite de tiempo por corrida. Y el tiempo máximo de un check en el perfil del repo.</p>")
 
 
 def reproducibilidad(p, pre, RAIZ, **k):
@@ -475,7 +456,7 @@ def reproducibilidad(p, pre, RAIZ, **k):
 
     commit = subprocess.run(["git", "log", "--format=%h", "-1", "--", "revisor"], cwd=RAIZ, capture_output=True, text=True).stdout.strip()
     p("<h2>Reproducibilidad</h2>")
-    p(f"<p>El código medido es el del commit <code>{commit}</code> (último que toca <code>revisor/</code>). Versiones fijadas en <code>requirements.txt</code> (<code>langgraph==1.2.12</code>) y en <code>repo-prueba/package-lock.json</code>. Todas las tablas de este informe las genera <code>informe/generar_informe.py</code> leyendo <code>resultados/</code>; ninguna cifra está escrita a mano.</p>")
+    p(f"<p>El código medido es el del commit <code>{commit}</code> (último que toca <code>revisor/</code>). Versiones fijadas en <code>requirements.txt</code> (<code>langgraph==1.2.12</code>) y en <code>repo-prueba/package-lock.json</code>. Todas las tablas de este informe las genera <code>informe/generar_informe.py</code> leyendo <code>resultados/</code>. Ninguna cifra está escrita a mano.</p>")
     p(pre("""uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -r requirements.txt
 (cd repo-prueba && npm ci)
 cp .env.example .env                                  # VPN de la USFQ conectada
@@ -489,5 +470,5 @@ cp .env.example .env                                  # VPN de la USFQ conectada
     p("<p>Ninguna credencial aparece en el código, las trazas ni el repositorio: se leen de un <code>.env</code> que <code>.gitignore</code> excluye, las herramientas no pueden leerlo y los comandos corren sin las variables del entorno. Se buscaron patrones de clave en <code>resultados/</code> antes de cada commit.</p>")
 
 
-SECCIONES = [portada, motivacion, que_se_construyo, parte0, parte1, parte2a, parte2b, parte2c, parte3, parte4,
-             conclusiones, parte5, evolucion, limitaciones, futuro, reproducibilidad]
+SECCIONES = [portada, motivacion, que_se_construyo, evolucion, parte0, parte1, parte2a, parte2b, parte2c, parte3, parte4,
+             conclusiones, parte5, limitaciones, futuro, reproducibilidad]

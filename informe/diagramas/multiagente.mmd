@@ -1,0 +1,22 @@
+flowchart LR
+    I(["parche"]) --> P["preparar"]
+    P --> B1["reviewer de bugs"]
+    P --> B2["reviewer de reglas"]
+    P --> B3["reviewer de clean code"]
+    P --> B4["reviewer de eficiencia"]
+    P --> B5["reviewer de impacto"]
+    B1 --> U["unir"]
+    B2 --> U
+    B3 --> U
+    B4 --> U
+    B5 --> U
+    U --> C["comprobar<br/>en código"]
+    C -- "quedan hallazgos<br/>pendientes" --> V["verificador"]
+    C -. "no queda ninguno" .-> S["sintetizador"]
+    V --> S
+    S --> Q["comprobar que el informe<br/>no añade nada"]
+    Q --> F(["informe"])
+    classDef agente fill:#e8eef9,stroke:#4a6fa5,color:#1f2d3d
+    classDef codigo fill:#f1f1f1,stroke:#888,color:#222
+    class B1,B2,B3,B4,B5,V,S agente
+    class P,U,C,Q codigo
