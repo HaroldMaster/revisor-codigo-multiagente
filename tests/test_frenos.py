@@ -65,3 +65,41 @@ def test_el_tope_de_pasos_deja_aviso_y_no_una_respuesta_vacia(embeddings, tmp_pa
     assert [f["freno"] for f in frenos] == ["tope_de_pasos"]
     assert resultado["status"] == "incompleto"
     assert "tope_de_pasos" in resultado["answer"] and "src/pedidos/pedidos.ts:24" in resultado["answer"]
+
+
+def test_tras_una_respuesta_vacia_se_reintenta_con_el_modelo_de_reintento(tmp_path):
+    from langchain_core.messages import AIMessage
+
+    from evaluacion.guion import responde
+    from revisor.llamada import invocar
+
+    traza = Traza(tmp_path, "p")
+    se_queda_razonando = ModeloDeGuion([AIMessage(content="")])
+    sin_razonar = ModeloDeGuion([responde("listo")])
+    respuesta = invocar(se_queda_razonando, "hola", agente="a", modelo="m", traza=traza, llm_reintento=sin_razonar)
+    assert respuesta.content == "listo"
+    assert [e["error"] for e in traza.eventos] == ["respuesta vacía", None]
+
+
+def test_una_llamada_que_falla_por_tiempo_tambien_se_reintenta(tmp_path):
+    from evaluacion.guion import responde
+    from revisor.llamada import invocar
+
+    class SeCuelga:
+        def invoke(self, mensajes):
+            raise TimeoutError("60 s")
+
+    traza = Traza(tmp_path, "p")
+    respuesta = invocar(SeCuelga(), "hola", agente="a", modelo="m", traza=traza, llm_reintento=ModeloDeGuion([responde("listo")]))
+    assert respuesta.content == "listo"
+    assert "TimeoutError" in traza.eventos[0]["error"]
+
+
+def test_si_el_reviewer_no_entrega_hallazgos_el_informe_lo_avisa(embeddings, tmp_path):
+    from evaluacion.guion import responde
+
+    modelo = ModeloDeGuion([responde("Revisé el cambio.")], estructurados=[])
+    resultado, frenos, _ = correr(modelo, embeddings, tmp_path)
+    assert [f["freno"] for f in frenos] == ["respuesta_vacia_al_extraer"]
+    assert resultado["status"] == "incompleto"
+    assert "respuesta_vacia_al_extraer" in resultado["answer"]

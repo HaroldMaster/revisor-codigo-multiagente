@@ -100,6 +100,7 @@ def verificar_con_modelo(hallazgo: Hallazgo, diff: str, contexto: Contexto) -> H
             agente="verificador",
             modelo=contexto.modelo_de("verificador"),
             traza=contexto.traza,
+            llm_reintento=(contexto.llm_reintento_de or contexto.llm_de)("verificador"),
         )
     except PresupuestoAgotado:
         return sin_verificar

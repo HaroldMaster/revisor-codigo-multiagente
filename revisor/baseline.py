@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import re
+from functools import partial
 from pathlib import Path
 
 from langgraph.graph import END, START, StateGraph
@@ -48,6 +49,10 @@ class RevisorBase:
         self._limite_tokens = limite_tokens
         self._reserva_tokens = reserva_tokens
         self._llm_de = llm_de
+        # Con un modelo real, el reintento tras una respuesta vacía va con el razonamiento
+        # en su nivel más bajo, sea cual sea el nivel con que corre el sistema.
+        real = llm_de is get_llm or getattr(llm_de, "func", None) is get_llm
+        self._llm_reintento_de = partial(get_llm, esfuerzo="low") if real else None
         self._modelo_de = modelo_de
         self._embeddings = embeddings
         self._carpeta_trazas = Path(carpeta_trazas or RAIZ / "corridas")
@@ -70,7 +75,8 @@ class RevisorBase:
                 perfil = cargar_perfil(repo)
                 indice = construir_indice(perfil, self._embeddings or get_embeddings())
                 contexto = Contexto(
-                    perfil, indice, traza, self._llm_de, self._modelo_de, max_pasos=self._max_pasos
+                    perfil, indice, traza, self._llm_de, self._modelo_de, self._llm_reintento_de,
+                    max_pasos=self._max_pasos,
                 )
                 estado = self.grafo(contexto).invoke({"diff": parche.read_text(encoding="utf-8")})
             status = "incompleto" if estado.get("avisos") else "completed"

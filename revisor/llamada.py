@@ -16,19 +16,25 @@ def texto_de(mensaje) -> str:
 
 
 def invocar(
-    llm, mensajes, *, agente: str, modelo: str, traza: Traza, reintentos_vacia: int = 1,
-    con_reserva: bool = False,
+    llm, mensajes, *, agente: str, modelo: str, traza: Traza, con_reserva: bool = False,
+    llm_reintento=None,
 ):
-    respuesta = None
+    """Llama al modelo. Si la respuesta llega vacía o la llamada falla (por ejemplo
+    por tiempo), reintenta una vez con `llm_reintento`: repetir la misma llamada a
+    un modelo que se quedó razonando suele fallar igual."""
     traza.exigir_presupuesto(con_reserva)
-    for _ in range(reintentos_vacia + 1):
+    respuesta = None
+    intentos = [llm, llm_reintento or llm]
+    for numero, actual in enumerate(intentos):
         inicio = time.perf_counter()
         try:
-            respuesta = llm.invoke(mensajes)
+            respuesta = actual.invoke(mensajes)
         except Exception as error:
             latencia = round((time.perf_counter() - inicio) * 1000)
             traza.llamada(agente, modelo, 0, 0, latencia, error=f"{type(error).__name__}: {error}")
-            raise
+            if numero == len(intentos) - 1:
+                raise
+            continue
         latencia = round((time.perf_counter() - inicio) * 1000)
         uso = respuesta.usage_metadata or {}
         vacia = not texto_de(respuesta).strip() and not respuesta.tool_calls
@@ -48,23 +54,26 @@ def invocar(
 
 
 def invocar_estructurado(
-    llm, esquema, mensajes, *, agente: str, modelo: str, traza: Traza, reintentos: int = 1,
-    con_reserva: bool = False,
+    llm, esquema, mensajes, *, agente: str, modelo: str, traza: Traza, con_reserva: bool = False,
+    llm_reintento=None,
 ):
     """Como invocar, para una respuesta con esquema fijo. Devuelve el objeto
-    validado, o None si tras los reintentos el modelo no lo entregó."""
+    validado, o None si tras el reintento el modelo no lo entregó."""
     from .config import estructurado
 
     traza.exigir_presupuesto(con_reserva)
-    ejecutable = estructurado(llm, esquema)
-    for _ in range(reintentos + 1):
+    intentos = [llm, llm_reintento or llm]
+    for numero, actual in enumerate(intentos):
+        ejecutable = estructurado(actual, esquema)
         inicio = time.perf_counter()
         try:
             resultado = ejecutable.invoke(mensajes)
         except Exception as error:
             latencia = round((time.perf_counter() - inicio) * 1000)
             traza.llamada(agente, modelo, 0, 0, latencia, error=f"{type(error).__name__}: {error}")
-            raise
+            if numero == len(intentos) - 1:
+                raise
+            continue
         latencia = round((time.perf_counter() - inicio) * 1000)
         uso = resultado["raw"].usage_metadata or {}
         objeto = resultado["parsed"]

@@ -65,9 +65,14 @@ def revisar(
             modelo=contexto.modelo_de(rol),
             traza=contexto.traza,
             con_reserva=True,
+            llm_reintento=(contexto.llm_reintento_de or contexto.llm_de)(rol),
         )
     except PresupuestoAgotado:
         lista = None
+    if lista is None and final["corte"] is None:
+        # Antes esto pasaba en silencio: el reviewer trabajaba y sus hallazgos se perdían.
+        final["corte"] = "respuesta_vacia_al_extraer"
+        contexto.traza.evento("freno", freno="respuesta_vacia_al_extraer", agente=nombre)
     propuestos = lista.hallazgos if lista else []
     hallazgos = [
         Hallazgo(id=f"{nombre}-{numero}", **propuesto.model_dump())

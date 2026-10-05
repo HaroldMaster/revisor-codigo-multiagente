@@ -63,9 +63,17 @@ def id_modelo(rol: str = "default") -> str:
     return config_de(rol).modelo
 
 
+def _cupo_de_salida(rol: str) -> int:
+    """Tokens que puede escribir el modelo en una respuesta, por rol. Va justo:
+    con un cupo holgado, un modelo que se queda razonando tarda minutos en
+    agotarlo antes de devolver una respuesta vacía."""
+    propio = os.getenv(f"LLM_MAX_TOKENS_{rol.upper()}")
+    return int(propio or os.getenv("LLM_MAX_TOKENS", "2048"))
+
+
 def get_llm(rol: str = "default", esfuerzo: str | None = None):
     config = config_de(rol)
-    max_tokens = int(os.getenv("LLM_MAX_TOKENS", "4096"))
+    max_tokens = _cupo_de_salida(rol)
     if config.proveedor == "anthropic":
         from langchain_anthropic import ChatAnthropic
 
@@ -74,6 +82,9 @@ def get_llm(rol: str = "default", esfuerzo: str | None = None):
 
     # El modelo de la H200 razona siempre y lo cobra del cupo de salida: sin
     # acotarlo puede gastar todo en razonar y devolver una respuesta vacía.
+    # Medido el 2026-10-04 sobre un diff largo: "low" razona unos 120 tokens;
+    # "none", "minimal" y enable_thinking=false razonan entre 1 500 y 2 048.
+    # El único ajuste que lo acota de verdad en este servidor es "low".
     esfuerzo = esfuerzo or os.getenv("LLM_REASONING_EFFORT", "")
     extras = {"reasoning_effort": esfuerzo} if esfuerzo else {}
     return ChatOpenAI(
@@ -82,7 +93,8 @@ def get_llm(rol: str = "default", esfuerzo: str | None = None):
         api_key=config.api_key,
         max_tokens=max_tokens,
         temperature=0,
-        timeout=180,
+        timeout=float(os.getenv("LLM_TIMEOUT_S", "60")),
+        max_retries=0,
         **extras,
     )
 

@@ -19,5 +19,7 @@ class Contexto:
     traza: Traza
     llm_de: Callable[[str], object] = get_llm
     modelo_de: Callable[[str], str] = id_modelo
+    # Modelo para reintentar tras una respuesta vacía; si falta, se reintenta con el mismo.
+    llm_reintento_de: Callable[[str], object] | None = None
     citas_devueltas: set[str] = field(default_factory=set)
     max_pasos: int = MAX_PASOS

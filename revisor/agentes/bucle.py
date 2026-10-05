@@ -44,6 +44,7 @@ def ejecutar_agente(
     )
     herramientas = {n: todas[n] for n in nombres_herramientas}
     llm = contexto.llm_de(rol).bind_tools(list(herramientas.values()))
+    llm_reintento = (contexto.llm_reintento_de or contexto.llm_de)(rol).bind_tools(list(herramientas.values()))
     modelo = contexto.modelo_de(rol)
 
     vistas: Counter = Counter()
@@ -56,6 +57,7 @@ def ejecutar_agente(
                 agente=nombre,
                 modelo=modelo,
                 traza=contexto.traza,
+                llm_reintento=llm_reintento,
             )
         except PresupuestoAgotado as agotado:
             contexto.traza.evento(

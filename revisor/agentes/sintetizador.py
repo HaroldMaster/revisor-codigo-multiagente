@@ -42,6 +42,7 @@ def sintetizar(hallazgos: list[Hallazgo], avisos: list[str], contexto: Contexto)
             respuesta = invocar(
                 contexto.llm_de("sintetizador"), mensajes, agente="sintetizador",
                 modelo=contexto.modelo_de("sintetizador"), traza=contexto.traza, con_reserva=True,
+                llm_reintento=(contexto.llm_reintento_de or contexto.llm_de)("sintetizador"),
             )
         except PresupuestoAgotado:
             break

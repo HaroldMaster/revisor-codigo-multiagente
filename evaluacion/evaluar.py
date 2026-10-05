@@ -150,9 +150,16 @@ def comparar(caso: dict, hallazgos: list[dict]) -> dict:
 
 # ------------------------------------------------------------ correr y escribir
 
+ETIQUETA = ""  # --etiqueta: para medir una variante del código sin mezclarla con lo ya medido
+
+
 def sufijo(repeticion: int, conjunto: str = "") -> str:
     """Sufijo de los archivos: _grande para el conjunto aparte, _rN desde la repetición 2."""
-    return (f"_{conjunto}" if conjunto else "") + ("" if repeticion == 1 else f"_r{repeticion}")
+    return (
+        (f"_{conjunto}" if conjunto else "")
+        + (f"_{ETIQUETA}" if ETIQUETA else "")
+        + ("" if repeticion == 1 else f"_r{repeticion}")
+    )
 
 
 def medir_caso(sistema: str, caso: dict, repeticion: int = 1, conjunto: str = "") -> dict:
@@ -244,8 +251,11 @@ def main() -> None:
     argumentos.add_argument("--verificar", action="store_true", help="solo comprueba la verdad de los casos")
     argumentos.add_argument("--repeticion", type=int, default=1, help="número de repetición (1 por defecto)")
     argumentos.add_argument("--conjunto", choices=["", "grande"], default="", help="grande: los PR grandes y el caso complejo")
+    argumentos.add_argument("--etiqueta", default="", help="sufijo para no mezclar con mediciones anteriores")
     argumentos.add_argument("--paralelo", type=int, default=4)
     opciones = argumentos.parse_args()
+    global ETIQUETA
+    ETIQUETA = opciones.etiqueta
     casos = cargar_golden(opciones.solo, opciones.conjunto)
 
     if opciones.verificar:
