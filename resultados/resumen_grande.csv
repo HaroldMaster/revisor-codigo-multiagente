@@ -8,6 +8,9 @@ baseline_con_pistas,3,zai-org/GLM-5.3-Flash,3,14,11,0.786,0/3,0/0,0,0/0,3,5/9,0,
 baseline_razonamiento_alto,1,zai-org/GLM-5.3-Flash,3,14,9,0.643,0/3,0/0,0,0/0,0,3/9,0,15,0,100828,26078,182.5
 baseline_razonamiento_alto,2,zai-org/GLM-5.3-Flash,3,14,13,0.929,2/3,0/0,0,0/0,1,3/9,0,14,0,94948,11378,80.4
 baseline_razonamiento_alto,3,zai-org/GLM-5.3-Flash,3,14,11,0.786,0/3,0/0,0,0/0,2,3/9,0,15,0,102438,13478,85.2
+baseline_razonamiento_medio,1,zai-org/GLM-5.3-Flash,3,14,13,0.929,2/3,0/0,0,0/0,0,5/9,0,14,0,116377,39516,244.9
+baseline_razonamiento_medio,2,zai-org/GLM-5.3-Flash,3,14,8,0.571,2/3,0/0,0,0/0,1,3/9,0,16,0,142080,59241,315.7
+baseline_razonamiento_medio,3,zai-org/GLM-5.3-Flash,3,14,13,0.929,2/3,0/0,0,0/0,1,5/9,0,15,0,121820,41173,243.2
 multiagente,1,zai-org/GLM-5.3-Flash,3,14,14,1.0,3/3,0/0,0,0/0,0,7/9,0,155,0,630559,96805,532.2
 multiagente,2,zai-org/GLM-5.3-Flash,3,14,14,1.0,3/3,0/0,0,0/0,2,8/9,0,171,0,705883,53983,220.9
 multiagente,3,zai-org/GLM-5.3-Flash,3,14,13,0.929,2/3,0/0,0,0/0,0,7/9,0,152,0,623305,63451,312.5

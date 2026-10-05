@@ -1,0 +1,4 @@
+sistema,repeticion,caso,tipo,dimension,esperados,encontrados,citas_esperadas,citas_correctas,hallazgos,aceptables,no_esperados,descartados,status,llamadas_modelo,usos_herramienta,errores_herramienta,frenos,tokens_entrada,tokens_salida,segundos,modelo,traza
+multiagente,3,G01,grande,varias,6,6,5,5,12,0,0,0,completed,55,34,0,0,213498,18736,72.6,zai-org/GLM-5.3-Flash,resultados/trazas/multiagente_grande_cupo4096_r3/G01.jsonl
+multiagente,3,G02,grande,varias,5,5,4,3,13,0,1,0,completed,61,40,0,0,231915,11626,40.4,zai-org/GLM-5.3-Flash,resultados/trazas/multiagente_grande_cupo4096_r3/G02.jsonl
+multiagente,3,G03,complejo,correctness,3,3,0,0,8,1,1,0,completed,41,20,0,0,166679,24797,127.0,zai-org/GLM-5.3-Flash,resultados/trazas/multiagente_grande_cupo4096_r3/G03.jsonl
