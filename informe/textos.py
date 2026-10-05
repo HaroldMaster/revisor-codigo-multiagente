@@ -373,6 +373,8 @@ def conclusiones(p, **k):
       "<li>De sus piezas, el RAG valió la pena y el verificador no.</li>"
       "<li>Varias conclusiones que tuve en el camino resultaron falsas. Lo que permitió verlo fue tener las trazas, repetir las mediciones y comparar siempre contra un control.</li>"
       "</ol>")
+    p("<p>Hay que aclarar qué se comparó. Los dos sistemas están hechos en LangGraph y usan el mismo modelo, así que este taller compara un agente contra varios, y no una skill de Claude Code contra un programa propio. Tampoco se puede decir que poder cambiar de modelo sea una ventaja de tener varios agentes, porque el agente único lo permite igual. Lo que cambia al pasar de una skill a un programa es que los pasos y las aprobaciones quedan en código y que el sistema se puede medir. Para saber si varios agentes valen la pena en un revisor hacen falta más casos, sobre un repositorio real y con otros modelos.</p>")
+
 
 
 def parte5(p, datos, **k):
