@@ -64,6 +64,7 @@ def crear_herramientas(
                     len(resultado),
                     round((time.perf_counter() - inicio) * 1000),
                     error=json.loads(resultado)["error"] if fallo else None,
+                    resultado=resultado,
                 )
             return resultado
 

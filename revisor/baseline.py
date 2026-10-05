@@ -77,6 +77,11 @@ class RevisorBase:
         except Exception as fallo:
             error = f"{type(fallo).__name__}: {fallo}"
         finally:
+            traza.evento(
+                "resultado",
+                hallazgos=[h.model_dump() for h in estado.get("hallazgos", [])],
+                informe=estado.get("informe"),
+            )
             traza.cerrar(status, error)
         return {
             "answer": estado.get("informe") or f"La revisión no terminó: {error}",

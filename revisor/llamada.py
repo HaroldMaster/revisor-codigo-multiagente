@@ -39,6 +39,8 @@ def invocar(
             uso.get("output_tokens", 0),
             latencia,
             error="respuesta vacía" if vacia else None,
+            respuesta=texto_de(respuesta),
+            pide=[{"nombre": l["name"], "argumentos": l["args"]} for l in respuesta.tool_calls],
         )
         if not vacia:
             break
@@ -73,6 +75,7 @@ def invocar_estructurado(
         traza.llamada(
             agente, modelo, uso.get("input_tokens", 0), uso.get("output_tokens", 0), latencia,
             error=motivo,
+            respuesta=objeto.model_dump_json() if objeto is not None else None,
         )
         if objeto is not None:
             return objeto

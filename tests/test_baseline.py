@@ -46,6 +46,15 @@ def test_run_cumple_el_contrato_y_revisa_la_copia_con_el_parche(embeddings, tmp_
     assert grep["tamano_resultado"] > len("Sin coincidencias para '0\\\\.15'")
     assert eventos[-1]["tipo"] == "cierre"
 
+    # La traza guarda qué pidió el modelo, qué observó y qué respondió.
+    pidio = next(e for e in eventos if e["tipo"] == "llamada" and e["pide"])
+    assert pidio["pide"] == [{"nombre": "grep_repo", "argumentos": {"patron": "0\\.15"}}]
+    assert "coincidencias" in grep["resultado"] or "Sin coincidencias" in grep["resultado"]
+    respondio = next(e for e in eventos if e["tipo"] == "llamada" and e["respuesta"])
+    assert respondio["respuesta"] == "Encontré un problema."
+    final = next(e for e in eventos if e["tipo"] == "resultado")
+    assert final["hallazgos"][0]["cita_regla"] == "R12"
+
 
 def test_un_fallo_deja_traza_y_status_failed(embeddings, tmp_path):
     modelo = ModeloDeGuion([])  # sin turnos: la primera llamada al modelo falla

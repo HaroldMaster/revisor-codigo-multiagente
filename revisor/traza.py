@@ -13,6 +13,14 @@ from pathlib import Path
 from .frenos import PresupuestoAgotado
 
 
+MAX_EXTRACTO = 700  # caracteres que se guardan de cada respuesta y de cada observación
+
+
+def extracto(texto: str | None) -> str | None:
+    if texto is None or len(texto) <= MAX_EXTRACTO:
+        return texto
+    return texto[:MAX_EXTRACTO] + f"… (+{len(texto) - MAX_EXTRACTO} caracteres)"
+
 
 class Traza:
     def __init__(
@@ -46,7 +54,10 @@ class Traza:
         tokens_salida: int,
         latencia_ms: int,
         error: str | None = None,
+        respuesta: str | None = None,
+        pide: list | None = None,
     ) -> None:
+        """`respuesta` es lo que el modelo contestó y `pide`, las herramientas que pidió."""
         self._escribir(
             {
                 "tipo": "llamada",
@@ -56,6 +67,8 @@ class Traza:
                 "tokens_salida": tokens_salida,
                 "latencia_ms": latencia_ms,
                 "error": error,
+                "pide": pide or [],
+                "respuesta": extracto(respuesta),
             }
         )
 
@@ -67,7 +80,9 @@ class Traza:
         tamano_resultado: int,
         latencia_ms: int,
         error: str | None = None,
+        resultado: str | None = None,
     ) -> None:
+        """`resultado` es lo que el modelo observó: el inicio de lo que devolvió la herramienta."""
         self._escribir(
             {
                 "tipo": "herramienta",
@@ -77,6 +92,7 @@ class Traza:
                 "tamano_resultado": tamano_resultado,
                 "latencia_ms": latencia_ms,
                 "error": error,
+                "resultado": extracto(resultado),
             }
         )
 
