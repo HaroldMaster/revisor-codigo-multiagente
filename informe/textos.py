@@ -227,6 +227,8 @@ def parte2b(p, tabla, datos, **k):
              for agente, v in sorted(uso.items(), key=lambda kv: -kv[1]["tokens_entrada"])]
     p("<p>Tokens por agente en el sistema multiagente (promedio por corrida de los 14 casos):</p>")
     p(tabla(["agente", "llamadas", "tokens de entrada", "parte del total", "tokens de salida"], filas, numericas=(1, 2, 3, 4)))
+    sint = datos.informes_del_sintetizador()
+    p(f"<p>El sintetizador casi no pesa en el costo, pero tampoco se evaluó. Las métricas de este taller miden los hallazgos y no el texto del informe, así que no se sabe si el informe que redacta es mejor que el que arma el código en el baseline. Lo único medido es que en {sint['con_rechazo']} de las {sint['redactadas']} corridas en que redactó, el código le rechazó el primer intento porque mencionaba una ubicación o una regla que no estaba en los hallazgos, y en el segundo intento lo corrigió.</p>")
 
 
 def parte2c(p, pasos_de, **k):
@@ -426,6 +428,7 @@ def limitaciones(p, tabla, **k):
       "<li>El repositorio de prueba es pequeño y los casos difíciles son solo tres. No es lo mismo que un repositorio real.</li>"
       "<li>Solo hay dos casos correctos, así que casi no se mide cuándo el sistema reporta algo que no es un problema. Los hallazgos no esperados de los otros casos no se revisaron uno por uno.</li>"
       "<li>Un acierto se cuenta por archivo, línea y palabras clave, así que un hallazgo poco preciso en la línea correcta puede contar.</li>"
+      "<li>No se evaluó la calidad del informe escrito, solo los hallazgos. Por eso no se puede decir si el sintetizador aporta algo.</li>"
       "<li>El golden set, el sistema y los prompts los hice yo, y ajusté los prompts viendo los resultados del mismo golden set.</li>"
       "<li>Son solo tres corridas por sistema, y los tiempos son aproximados porque varios casos corren a la vez en una GPU compartida.</li>"
       "<li>Las llamadas vacías no están resueltas, y el último arreglo solo se midió en el multiagente con los casos difíciles. El resto de las cifras son anteriores a ese cambio.</li>"

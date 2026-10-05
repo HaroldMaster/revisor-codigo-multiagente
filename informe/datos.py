@@ -221,3 +221,17 @@ def bugs_del_caso_complejo(sistemas: list[str]) -> dict[str, list[int]]:
                 cuenta[i] += lo_encuentra(hallazgos, esperado)
         tabla[sistema] = cuenta
     return tabla
+
+
+def informes_del_sintetizador(sistema: str = "multiagente") -> dict:
+    """En cuántas corridas redactó el sintetizador, y cuántas veces el código le rechazó
+    el informe por mencionar algo que no estaba en los hallazgos."""
+    redactadas = con_rechazo = por_codigo = 0
+    for carpeta in _carpetas(sistema):
+        for traza in carpeta.glob("*.jsonl"):
+            ev = eventos(traza)
+            redactadas += any(e["tipo"] == "llamada" and e["agente"] == "sintetizador" for e in ev)
+            rechazos = [e for e in ev if e["tipo"] == "procedencia"]
+            con_rechazo += bool(rechazos)
+            por_codigo += any("generado por código" in str(e) for e in rechazos)
+    return {"redactadas": redactadas, "con_rechazo": con_rechazo, "por_codigo": por_codigo}
