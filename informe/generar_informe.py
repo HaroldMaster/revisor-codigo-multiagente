@@ -123,7 +123,7 @@ def pasos_de(traza: str, maximo: int = 14, ancho: int = 170, solo: tuple = (), e
         quien = NOMBRES.get(agente, agente)
         if e["tipo"] == "llamada":
             if errores and e.get("error"):
-                filas.append([quien, "—", corto(f"La llamada al modelo falla: {e['error']} ({e['tokens_salida']} tokens de salida, {e['latencia_ms'] / 1000:.0f} s)")])
+                filas.append([quien, "ninguna, la llamada falla", corto(f"La llamada al modelo falla: {e['error']} ({e['tokens_salida']} tokens de salida, {e['latencia_ms'] / 1000:.0f} s)")])
             elif e.get("pide"):
                 for llamada in e["pide"]:
                     argumentos = ", ".join(f"{k}={json.dumps(v, ensure_ascii=False)}" for k, v in llamada["argumentos"].items())
@@ -131,7 +131,7 @@ def pasos_de(traza: str, maximo: int = 14, ancho: int = 170, solo: tuple = (), e
                     filas.append(fila)
                     pendientes.setdefault((agente, llamada["nombre"]), []).append(fila)
             elif e.get("respuesta"):
-                filas.append([quien, "—", respuesta_legible(e["respuesta"])])
+                filas.append([quien, "ninguna, da su respuesta", respuesta_legible(e["respuesta"])])
         elif e["tipo"] == "herramienta":
             cola = pendientes.get((agente, e["nombre"]))
             if cola:
