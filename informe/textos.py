@@ -68,15 +68,14 @@ def parte0(p, archivo, **k):
     p("<p>La opción libre no trae los scripts del laboratorio, así que se escribieron tres equivalentes para un revisor de código (<code>evaluacion/parte0/</code>). La 0.b y la 0.c no usan ningún modelo.</p>")
     p("<h3>0.a — El revisor que no mira</h3>")
     p("<p>El modelo recibe un diff con un bug y nada más: ni herramientas ni las reglas del repo. Se le pide un review con citas y después el código comprueba cada cita contra el repositorio. Se corrió con dos niveles de razonamiento.</p>")
-    p(archivo("evaluacion/parte0/salidas/a.txt", quitar=("texto regla:", "evidencia:", "[ok]")))
-    p("<p>Con razonamiento bajo el modelo devuelve cero hallazgos, aunque el cambio tiene un bug. Eso es peor que un error, porque una respuesta vacía con el formato correcto se lee como &quot;todo está bien&quot;. Con razonamiento alto sí ve el bug, pero las reglas que cita no existen y el texto que pone como &quot;literal&quot; es inventado, igual que algunos de los archivos afectados. Para no tener que adivinar, el modelo necesita poder leer los archivos y preguntar por las reglas, y además alguien tiene que comprobar que lo que cita existe. Por eso el sistema tiene herramientas, RAG y comprobaciones en código.</p>")
-    p("<p>Hay que tomar en cuenta que en esta prueba el prompt le pide al modelo el identificador y el texto de una regla que no puede conocer. Lo correcto habría sido que respondiera que no los tiene, pero la forma en que se le pregunta lo lleva a inventar. Por eso esta prueba muestra el problema, pero de una forma un poco forzada.</p>")
+    p(archivo("evaluacion/parte0/salidas/a.txt", quitar=("texto regla:", "evidencia:", "[ok]"), saltar=("--- hallazgo 2", "citas comprobadas")))
+    p("<p>Con razonamiento bajo el modelo devuelve cero hallazgos aunque el cambio tiene un bug, y una respuesta vacía con el formato correcto se lee como &quot;todo está bien&quot;. Con razonamiento alto sí ve el bug, pero inventa las reglas que cita y algunos de los archivos afectados (se muestra solo el primero de sus tres hallazgos). Por eso el sistema necesita herramientas para leer el código, un RAG para consultar las reglas y comprobaciones en código que revisen que lo citado existe. Hay que tomar en cuenta que en esta prueba el prompt le pide al modelo citar reglas que no puede conocer, así que lo empuja a inventar.</p>")
     p("<h3>0.b — El RAG plano que no trae la regla</h3>")
     p(archivo("evaluacion/parte0/salidas/b.txt"))
-    p("<p>Aquí lo que falla es la búsqueda, no el modelo. La línea del diff y la regla que la prohíbe no comparten ninguna palabra, así que un índice por palabras da similitud cero y devuelve tres reglas cualesquiera. Con ese contexto el modelo citaría una regla que no aplica, o ninguna. En cambio, cuando se pregunta por la intención del cambio aparecen las dos reglas correctas. Por eso la descripción de <code>buscar_reglas</code> le pide al agente que pregunte por la intención y que no pegue código. Esta prueba usa TF-IDF. El sistema usa embeddings, que ayudan con este problema pero no lo quitan del todo.</p>")
+    p("<p>Aquí lo que falla es la búsqueda. La línea del diff y la regla que la prohíbe no comparten ninguna palabra, así que buscar con el código no encuentra la regla. Cuando se pregunta por la intención del cambio sí aparecen las dos reglas correctas. Por eso la descripción de <code>buscar_reglas</code> le pide al agente que pregunte por la intención y no pegue código. Esta prueba usa TF-IDF y el sistema usa embeddings, que ayudan con este problema pero no lo quitan del todo.</p>")
     p("<h3>0.c — Los tests en verde que no prueban nada</h3>")
     p(archivo("evaluacion/parte0/salidas/c.txt"))
-    p("<p>El cambio tiene un bug en un caso borde y llega con un test que solo revisa que la función exista. Si uno mira solo el código de salida, lo aprueba. Las dos comprobaciones en código lo rechazan sin usar ningún modelo: la primera ve que ninguna afirmación del test compara un valor, y la segunda rompe la función a propósito y los tests siguen pasando. La primera comprobación no detectaría un test que sí compara un valor pero el equivocado. Por eso la decisión final puede quedar en un modelo, pero después de estas comprobaciones.</p>")
+    p("<p>El cambio tiene un bug y llega con un test que solo revisa que la función exista, así que lint, tipos y tests pasan. Las dos comprobaciones en código lo rechazan sin usar ningún modelo: una ve que el test no compara ningún valor y la otra rompe la función a propósito y los tests siguen pasando. Por eso el sistema no se guía solo por si los tests pasan.</p>")
 
 
 def parte1(p, tabla, pre, pasos_de, diagrama, datos, RAIZ, recolectar, cargar_perfil, tomllib, Counter, **k):
@@ -134,8 +133,8 @@ def parte1(p, tabla, pre, pasos_de, diagrama, datos, RAIZ, recolectar, cargar_pe
 
     p("<h3>Dos corridas</h3>")
     p("<p>Las dos tablas siguientes muestran los primeros pasos de dos corridas, tomados de sus trazas. Cada fila es una acción de un agente: la herramienta que pidió y lo que recibió, o lo que respondió cuando no pidió ninguna. En el sistema multiagente los reviewers trabajan a la vez, por eso sus filas aparecen mezcladas. La primera es el caso C01 con el baseline y la segunda el caso C11 con el sistema multiagente. Las trazas completas están en <code>resultados/trazas/</code>.</p>")
-    p(pasos_de("resultados/trazas/baseline/C01.jsonl", maximo=12))
-    p(pasos_de("resultados/trazas/multiagente/C11.jsonl", maximo=22))
+    p(pasos_de("resultados/trazas/baseline/C01.jsonl", maximo=6))
+    p(pasos_de("resultados/trazas/multiagente/C11.jsonl", maximo=8))
 
 
 def parte2a(p, tabla, datos, RAIZ, **k):
@@ -213,16 +212,14 @@ def parte2b(p, tabla, datos, **k):
 
     r = datos.resumen_por_sistema()
     m = lambda sistema, metrica: datos.media(r[sistema][metrica])  # noqa: E731
-    p("<p>Lo que se ve en estas tablas:</p>")
+    p("<p>De estas tablas se puede decir lo siguiente:</p>")
     p("<ul>"
-      f"<li>El sistema multiagente encontró los 14 problemas en todas sus corridas, y sus dos ablaciones también. El baseline quedó en {datos.dec(m('baseline', 'encontrados'))} de promedio, entre 11 y 13. Los casos que falla son tres (C09, C10 y C11), y el que más se repite es el C11, donde se cambia una utilidad y eso altera el impuesto en otro módulo.</li>"
-      f"<li>Una parte de esa ventaja venía de las instrucciones y no de tener más agentes. El agente único con las instrucciones de los reviewers sube a {datos.dec(m('baseline_con_pistas', 'encontrados'))}. Y con razonamiento medio (Parte 4) un solo agente también encontró los 14 en sus tres corridas.</li>"
-      f"<li>Donde más se nota la diferencia es en el costo. El multiagente usa {datos.dec(m('multiagente', 'tokens_entrada') / m('baseline', 'tokens_entrada'))} veces los tokens de entrada del baseline y tarda unas {m('multiagente', 'segundos') / m('baseline', 'segundos'):.0f} veces más.</li>"
-      f"<li>El multiagente cita mejor la regla que se incumple ({datos.dec(m('multiagente', 'citas_correctas'))} de 11, contra {datos.dec(m('baseline', 'citas_correctas'))} del baseline). Tiene sentido, porque uno de sus reviewers solo se dedica a preguntar por las reglas.</li>"
-      f"<li>En cambio, el multiagente a veces reporta algo en los dos casos que estaban bien ({datos.dec(m('multiagente', 'falsas_alarmas'))} hallazgos de promedio), y los agentes únicos nunca lo hicieron. Esto se revisa en 2.c.</li>"
-      f"<li>El verificador no valió lo que cuesta. Sin él se encontró lo mismo usando un {100 * (1 - m('sin_verificador', 'tokens_entrada') / m('multiagente', 'tokens_entrada')):.0f} % menos de tokens. Lo único a su favor es que hay un poco menos de hallazgos no esperados ({datos.dec(m('multiagente', 'no_esperados'))} contra {datos.dec(m('sin_verificador', 'no_esperados'))}), pero esa diferencia es muy pequeña para darla por cierta.</li>"
-      f"<li>El RAG no ayudó a encontrar más problemas, pero sí a citarlos. Sin RAG se encuentran los mismos 14, pero no se cita ninguna regla, y los hallazgos no esperados suben de {datos.dec(m('multiagente', 'no_esperados'))} a {datos.dec(m('sin_rag', 'no_esperados'))}. Lo que pasa es que, sin las reglas escritas, los agentes las deducen leyendo el código y a veces deducen reglas que no existen.</li>"
-      "<li>Hay que tener cuidado con las diferencias pequeñas. Con tres corridas, que un sistema encuentre un caso más que otro no dice mucho, porque el mismo baseline varió entre 11 y 13. Además, estos 14 casos son cambios pequeños sobre un repositorio pequeño. En la Parte 4 se prueba con cambios más difíciles.</li>"
+      f"<li>El sistema multiagente encontró los 14 problemas en todas sus corridas. El baseline encontró {datos.dec(m('baseline', 'encontrados'))} de promedio. Los que falla son C09, C10 y sobre todo C11, donde un cambio en una utilidad altera el impuesto en otro módulo.</li>"
+      f"<li>Una parte de esa diferencia viene de las instrucciones y no de tener más agentes, porque el agente único con las instrucciones de los reviewers sube a {datos.dec(m('baseline_con_pistas', 'encontrados'))}.</li>"
+      f"<li>El multiagente cuesta mucho más: usa {datos.dec(m('multiagente', 'tokens_entrada') / m('baseline', 'tokens_entrada'))} veces los tokens de entrada del baseline y tarda unas {m('multiagente', 'segundos') / m('baseline', 'segundos'):.0f} veces más.</li>"
+      f"<li>El multiagente cita mejor la regla que se incumple ({datos.dec(m('multiagente', 'citas_correctas'))} de 11 contra {datos.dec(m('baseline', 'citas_correctas'))}), pero a veces reporta algo en los dos casos que estaban bien ({datos.dec(m('multiagente', 'falsas_alarmas'))} hallazgos de promedio), cosa que los agentes únicos nunca hicieron.</li>"
+      f"<li>Quitar el verificador no cambió lo que se encuentra y ahorró un {100 * (1 - m('sin_verificador', 'tokens_entrada') / m('multiagente', 'tokens_entrada')):.0f} % de tokens. Quitar el RAG tampoco cambió lo que se encuentra, pero ya no se cita ninguna regla y los hallazgos no esperados suben de {datos.dec(m('multiagente', 'no_esperados'))} a {datos.dec(m('sin_rag', 'no_esperados'))}.</li>"
+      "<li>Las diferencias de un solo caso no se pueden tomar como ciertas, porque el mismo baseline varió entre 11 y 13 en sus tres corridas.</li>"
       "</ul>")
     uso = datos.uso_por_agente("multiagente")
     total = sum(v["tokens_entrada"] for v in uso.values())
@@ -234,16 +231,16 @@ def parte2b(p, tabla, datos, **k):
 
 def parte2c(p, pasos_de, **k):
     p("<h3>2.c — Análisis de fallos</h3>")
-    p("<p>Se eligieron los tres peores resultados del sistema entregado y de su baseline, y para cada uno se señala la pieza a la que apunta la traza.</p>")
+    p("<p>Estos son los tres peores resultados que se encontraron. Para cada uno se muestra parte de la traza y se indica qué parte del sistema falló.</p>")
     p("<p><b>1. Caso N01 con el sistema multiagente: reporta algo en un cambio que estaba bien.</b> El cambio añade un método <code>cantidadTotal()</code> con sus tests. En dos de las tres corridas el reviewer de clean code reportó que el método &quot;no tiene ningún consumidor en producción&quot;, y el verificador lo confirmó.</p>")
-    p(pasos_de("resultados/trazas/multiagente/N01.jsonl", maximo=40, solo=("reviewer_clean_code", "verificador")))
-    p("<p>Lo que dice el hallazgo es verdad, porque todavía nadie llama a ese método. El problema está en la instrucción que le di al reviewer de clean code. Le pedí reportar todo lo exportado que &quot;solo aparece donde se define&quot;, y esa instrucción la escribí pensando en el caso C09. Aquí se aplica a un método nuevo que viene con sus tests, que es como empieza cualquier funcionalidad. De este caso aprendí dos cosas. La primera es que el verificador revisa si lo que se afirma es verdad, pero no si eso es realmente un problema. La segunda es que el caso que yo consideraba &quot;limpio&quot; no lo era del todo según la regla R10 como la escribí, así que también hay que corregir el golden set. La parte que falla es el prompt de ese reviewer, y también el propio caso.</p>")
+    p(pasos_de("resultados/trazas/multiagente/N01.jsonl", maximo=6, solo=("reviewer_clean_code", "verificador")))
+    p("<p>Lo que dice el hallazgo es verdad, porque todavía nadie llama a ese método. Lo que falla es el prompt del reviewer de clean code. Le pedí reportar todo lo exportado que solo aparece donde se define, pensando en el caso C09, y aquí lo aplica a un método nuevo que viene con sus tests. Este caso también muestra que el verificador revisa si lo que se afirma es verdad, pero no si eso es un problema. Además el caso no estaba tan limpio según la regla R10 como la escribí, así que también hay que corregir el golden set.</p>")
     p("<p><b>2. Caso C11 con el baseline: no ve que el cambio afecta a otro módulo.</b> El cambio hace que <code>porcentajeDe</code> trunque en vez de redondear. La descripción habla solo de descuentos, pero esa función también se usa para calcular el impuesto de los pedidos.</p>")
-    p(pasos_de("resultados/trazas/baseline/C11.jsonl", maximo=12))
-    p("<p>El agente sí tuvo la información que necesitaba, porque su búsqueda le devolvió el uso en <code>pedidos.ts</code> donde se calcula el impuesto. Pero después corrió los tests, vio que pasaban y concluyó que el cambio &quot;es correcto y está bien hecho&quot;. Es lo mismo que mostró la Parte 0.c, pero ahora dentro del agente: como los tests pasaron, dio el cambio por bueno. La parte que falla aquí es el modelo, y también que nadie tenía como tarea revisar el impacto. En el sistema multiagente, el reviewer de impacto solo se dedica a ver qué pasa con cada lugar donde se usa lo que cambió, y encontró este caso en todas las corridas.</p>")
+    p(pasos_de("resultados/trazas/baseline/C11.jsonl", maximo=6))
+    p("<p>El agente tuvo la información que necesitaba, porque su búsqueda le devolvió el uso en <code>pedidos.ts</code> donde se calcula el impuesto. Pero corrió los tests, vio que pasaban y dio el cambio por bueno, igual que en la Parte 0.c. Lo que falla es el modelo, y que ningún agente tenía como tarea revisar el impacto. En el sistema multiagente, el reviewer de impacto encontró este caso en todas las corridas.</p>")
     p("<p><b>3. Caso G01 con un agente y razonamiento medio, segunda corrida: se pierde toda la revisión.</b> Es el peor resultado de todas las mediciones. Encontró 0 de 6 problemas en un PR grande que el mismo sistema resolvió completo en las otras dos corridas.</p>")
-    p(pasos_de("resultados/trazas/baseline_razonamiento_medio_grande_r2/G01.jsonl", maximo=16, errores=True))
-    p("<p>El agente sí hizo la revisión: leyó los archivos y resumió lo que había encontrado. El fallo fue al final, cuando se le piden los hallazgos en el formato fijo. El modelo gastó dos veces los 8 192 tokens que tenía de salida solo razonando y no devolvió nada. El sistema anotó el error en la traza, pero entregó &quot;sin hallazgos&quot; con estado <code>completed</code>, o sea, una revisión vacía que parece una revisión de un cambio sin problemas. Es el mismo tipo de falla silenciosa de la Parte 0.a, y solo me di cuenta porque revisé la traza. La parte que falla es el modelo y también el sistema, que no avisaba. Se corrigieron dos cosas (Parte 4): ahora en esa situación el informe sale con un aviso y con estado <code>incompleto</code>, y el reintento ya no repite la misma llamada. Este caso también muestra una ventaja del sistema multiagente: si a uno de sus siete agentes le pasa esto, se pierde una parte de la revisión, pero no toda.</p>")
+    p(pasos_de("resultados/trazas/baseline_razonamiento_medio_grande_r2/G01.jsonl", maximo=7, errores=True, desde_el_final=True))
+    p("<p>El agente sí hizo la revisión, pero al final, cuando se le piden los hallazgos en el formato fijo, el modelo gastó dos veces todos sus tokens de salida razonando y no devolvió nada. El sistema entregó &quot;sin hallazgos&quot; con estado <code>completed</code>, como si el cambio no tuviera problemas. Lo que falla es el modelo y también el sistema, que no avisaba. Ahora en esa situación el informe sale con un aviso y con estado <code>incompleto</code> (Parte 4.3). En el sistema multiagente esto mismo haría perder solo la parte de un agente y no toda la revisión.</p>")
 
 
 def parte3(p, tabla, archivo, datos, **k):
@@ -256,8 +253,8 @@ def parte3(p, tabla, archivo, datos, **k):
         ["Tiempo máximo de un check", "<code>herramientas.py</code>", "El comando de tests duerme 60 s. Límite 2 s", "Se mata el grupo de procesos. El modelo recibe el error como observación y sigue"],
     ]))
     p(archivo("resultados/frenos/salida.txt", desde="=== Presupuesto", hasta="=== Detector"))
-    p("<p>En los cuatro casos el informe sale con un aviso arriba y la corrida queda con estado <code>incompleto</code>. Nunca devuelve una respuesta vacía. La reserva del presupuesto existe para eso: el trabajo normal puede gastar hasta el límite menos la reserva, y solo los pasos de cierre (extraer los hallazgos y redactar) pueden usar el resto. Sin ella, una corrida que agota el presupuesto pierde todo lo que gastó.</p>")
-    p("<p>Estos frenos tienen límites. El presupuesto se revisa antes de cada llamada, cuando todavía no se sabe cuánto va a costar, así que puede pasarse por una llamada. El detector de repetición solo detecta la llamada idéntica. No detecta a un agente que alterna entre dos llamadas, ni al que cambia un poco los argumentos cada vez. Para esos casos queda el tope de pasos. No hay un freno de confirmación humana porque ninguna herramienta escribe, pero sería obligatorio cuando el sistema aplique parches (ver Trabajo futuro).</p>")
+    p("<p>En los cuatro casos el informe sale con un aviso y la corrida queda con estado <code>incompleto</code>, nunca con una respuesta vacía. Para eso el presupuesto guarda una reserva que solo se usa al final, para extraer los hallazgos y redactar el informe.</p>")
+    p("<p>Estos frenos tienen límites. El presupuesto se revisa antes de cada llamada, así que puede pasarse por una. El detector de repetición solo ve la llamada idéntica, no al agente que alterna entre dos llamadas o cambia un poco los argumentos, y para eso queda el tope de pasos. No hay confirmación humana porque ninguna herramienta escribe.</p>")
 
     c = datos.calibracion()
     filas = []
@@ -268,7 +265,7 @@ def parte3(p, tabla, archivo, datos, **k):
                           datos.miles(tokens[len(tokens) // 2]), datos.miles(tokens[-1])])
     checks = c["checks"]
     p("<h3>De dónde salen los límites</h3>")
-    p("<p>Los valores de los límites los puse antes de medir nada y sin apoyarme en ninguna referencia. Eso es una debilidad del trabajo, porque un límite debería salir de una fuente o de una medición. Después de medir los comparé con lo que usaron las corridas de verdad:</p>")
+    p("<p>Los valores de los límites los puse antes de medir y sin una referencia, lo cual es una debilidad del trabajo. Después los comparé con lo que usaron las corridas de verdad:</p>")
     p(tabla(["sistema", "corridas", "llamadas del reviewer más ocupado: mediana", "máximo", "tokens por corrida: mediana", "máximo"], filas, numericas=(1, 2, 3, 4, 5)))
     p(tabla(["límite", "valor", "con qué se contrasta", "veredicto"], [
         ["Pasos por agente", "12 (10 en los reviewers, 6 en el verificador)", "LangGraph 1.2.12 no pone un tope útil por defecto (<code>DEFAULT_RECURSION_LIMIT</code> = 10 007 en el paquete instalado): el tope es responsabilidad de quien escribe el agente. El máximo observado está en la tabla de arriba", "Razonable: deja margen sobre el peor caso sin permitir bucles largos"],
@@ -281,7 +278,7 @@ def parte3(p, tabla, archivo, datos, **k):
     if reales:
         p("<p>Además de los forzados, estos frenos saltaron solos en las corridas medidas:</p>")
         p(tabla(["sistema", "freno", "agente", "veces"], [[dict(datos.SISTEMAS).get(s, s), f, a, n] for s, f, a, n in sorted(reales)], numericas=(3,)))
-    p("<p>Ni el presupuesto de tokens ni el tiempo máximo de un check se dispararon en una corrida medida, así que los resultados de la Parte 2 no dependen de sus valores. Sigue faltando un freno: un límite de tiempo para la corrida completa.</p>")
+    p("<p>El presupuesto de tokens y el tiempo máximo de un check nunca saltaron en una corrida medida, así que los resultados no dependen de esos valores. Falta un freno, que es un límite de tiempo para la corrida completa.</p>")
 
 
 def parte4(p, tabla, datos, **k):
@@ -296,7 +293,7 @@ def parte4(p, tabla, datos, **k):
                 f"{datos.media_y_rango(grande['encontrados'])} de 14" if grande else "—"]
 
     p("<h2>Parte 4 — Extensión: cuánto razona el modelo, y código más difícil</h2>")
-    p("<p>La extensión se eligió después de medir el baseline. La pregunta era si, antes de añadir más agentes, alcanzaba con que un solo agente razonara más. Después se hicieron dos pruebas más, que salieron de dudas que dejaron los primeros resultados: qué pasa con cambios más difíciles, y por qué algunas corridas tardaban tanto.</p>")
+    p("<p>La extensión se eligió después de medir el baseline, para saber si antes de añadir agentes alcanzaba con que uno solo razonara más. Después se hicieron dos pruebas más por dudas que dejaron los resultados: qué pasa con cambios más difíciles y por qué algunas corridas tardaban tanto.</p>")
 
     p("<h3>4.1 — El nivel de razonamiento</h3>")
     p("<p>El modelo de la H200 acepta un parámetro <code>reasoning_effort</code> que le indica cuánto &quot;pensar&quot; antes de responder. Todo el taller corre con <code>low</code>. Aquí se cambia solo ese valor, con el mismo golden set.</p>")
@@ -308,7 +305,7 @@ def parte4(p, tabla, datos, **k):
         fila_razonamiento("multiagente_razonamiento_alto", "siete", "alto"),
     ], numericas=(2, 3, 4, 5, 6)))
     medio, base, multi = r14["baseline_razonamiento_medio"], r14["baseline"], r14["multiagente"]
-    p(f"<p>Con razonamiento medio, un solo agente encontró los 14 problemas en sus tres corridas y no reportó nada en los casos que estaban bien. Usó {datos.dec(datos.media(medio['tokens_entrada']) / datos.media(base['tokens_entrada']))} veces los tokens del baseline, mientras que el sistema multiagente usa {datos.dec(datos.media(multi['tokens_entrada']) / datos.media(base['tokens_entrada']))} veces. Lo malo es que es el más lento: sus 14 casos suman {datos.media(medio['segundos']):.0f} segundos, contra {datos.media(multi['segundos']):.0f} del multiagente. Esto pasa porque el tiempo depende de cuánto texto genera el modelo, y cuando razona escribe mucho más. El nivel alto no fue mejor que el medio y tuvo más hallazgos no esperados. En el multiagente, subir el razonamiento no ayudó a encontrar más y sí hizo que reportara más cosas en los casos que estaban bien. Creo que es porque cada reviewer tiene una tarea pequeña y no necesita razonar tanto. Al inicio yo había descartado el nivel medio por una sola llamada de prueba. Al medirlo bien, el resultado fue otro.</p>")
+    p(f"<p>Con razonamiento medio, un solo agente encontró los 14 problemas en sus tres corridas, sin reportar nada en los casos que estaban bien, usando {datos.dec(datos.media(medio['tokens_entrada']) / datos.media(base['tokens_entrada']))} veces los tokens del baseline. Eso sí, es el más lento ({datos.media(medio['segundos']):.0f} segundos contra {datos.media(multi['segundos']):.0f} del multiagente), porque al razonar el modelo escribe mucho más. El nivel alto no fue mejor que el medio. En el multiagente subir el razonamiento no encontró más y sí hizo que reportara más en los casos que estaban bien. Al inicio yo había descartado el nivel medio por una sola llamada de prueba, y al medirlo bien resultó ser el mejor para un agente único.</p>")
 
     p("<h3>4.2 — Cambios más difíciles</h3>")
     p("<p>Los 14 casos son cambios de pocas líneas. Para ver qué pasa cuando el cambio es más grande o tiene más dependencias entre sus piezas se construyeron tres casos más, sobre la misma mini tienda. Van en un conjunto aparte (<code>golden_set_grande.json</code>) para no alterar el examen de 14.</p>")
@@ -317,7 +314,7 @@ def parte4(p, tabla, datos, **k):
         ["G02", "PR grande: otros cuatro (C04, C05, C07, C11) juntos", "5", "56"],
         ["G03", "Caso complejo: un módulo nuevo de precios con una jerarquía de clases (método plantilla y subclases), un contenedor que inyecta las dependencias y una función con caché", "3", "213"],
     ], numericas=(2, 3)))
-    p("<p>En G03 los tres bugs no se ven leyendo una sola línea, porque dependen de cómo se conectan las piezas. En el primero, una subclase sobrescribe el método plantilla y con eso se salta el tope que la clase base garantiza. En el segundo, un valor que debía consultarse cada vez se lee una sola vez, cuando se arma el contenedor. En el tercero, la clave de la caché no toma en cuenta uno de los dos argumentos. Con el parche aplicado, lint, tipos y tests pasan. Hay tres tests ocultos, uno por cada bug, que demuestran que existen.</p>")
+    p("<p>En G03 los bugs dependen de cómo se conectan las piezas. Una subclase sobrescribe el método plantilla y se salta el tope que la clase base garantiza. Un valor que debía consultarse cada vez se lee una sola vez al armar el contenedor. Y la clave de la caché no toma en cuenta uno de los dos argumentos. Con el parche aplicado, lint, tipos y tests pasan, y hay un test oculto por cada bug.</p>")
     p(_tabla_sistemas(tabla, datos, "grande"))
     orden = ["baseline", "baseline_con_pistas", "baseline_razonamiento_medio", "baseline_razonamiento_alto", "multiagente", "sin_verificador", "sin_rag", "multiagente_razonamiento_alto"]
     bugs = datos.bugs_del_caso_complejo(orden)
@@ -325,9 +322,8 @@ def parte4(p, tabla, datos, **k):
     p(tabla(["sistema", "herencia: se salta el método plantilla", "inyección: valor leído una sola vez", "caché: clave incompleta"],
             [[nombres[s], f"{b[0]} de {b[3]}", f"{b[1]} de {b[3]}", f"{b[2]} de {b[3]}"] for s, b in bugs.items() if b[3]], numericas=(1, 2, 3)))
     gb, gm, gmed = rg["baseline"], rg["multiagente"], rg["baseline_razonamiento_medio"]
-    p(f"<p>En estos casos la diferencia sí es grande. El baseline encuentra {datos.dec(datos.media(gb['encontrados']))} de 14 y el sistema multiagente {datos.dec(datos.media(gm['encontrados']))}. La mayor parte de la diferencia está en el caso complejo. Ningún agente único con razonamiento bajo o alto encontró el bug de herencia en ninguna corrida, y todas las versiones multiagente encontraron los tres bugs las tres veces. Juntar muchos cambios simples (G01 y G02) le afecta menos a un agente único que tener código donde hay que seguir varias piezas para entender el problema (G03).</p>")
-    p(f"<p>Sin embargo, con razonamiento medio la diferencia se vuelve a reducir. Un solo agente con razonamiento medio también encontró los tres bugs de G03 en sus tres corridas, usando {datos.miles(datos.media(gmed['tokens_entrada']))} tokens contra {datos.miles(datos.media(gm['tokens_entrada']))} del multiagente. Su promedio ({datos.dec(datos.media(gmed['encontrados']))} de 14) es más bajo que el del multiagente por una sola corrida, en la que perdió todos los hallazgos de G01. Es el tercer caso que se explica en 2.c.</p>")
-    p("<p>Con esto se puede decir que el sistema multiagente ayuda más cuando el problema no está en la línea que cambia, sino en cómo esa línea se relaciona con otras piezas. También aguanta mejor cuando una llamada al modelo falla. Pero un agente único con razonamiento medio llega casi al mismo resultado con una quinta parte de los tokens. Los datos van en la dirección de que repartir el trabajo ayuda más mientras más complejo es el código, pero no alcanzan para afirmarlo. Son solo tres casos, los escribí yo para el taller, y G03 añade archivos completos, que es menos común en un PR que modificar funciones.</p>")
+    p(f"<p>En estos casos la diferencia sí es grande: el baseline encuentra {datos.dec(datos.media(gb['encontrados']))} de 14 y el multiagente {datos.dec(datos.media(gm['encontrados']))}. Casi toda está en el caso complejo, donde ningún agente único con razonamiento bajo o alto encontró el bug de herencia. Juntar muchos cambios simples (G01 y G02) afecta menos que tener que seguir varias piezas para entender el problema (G03).</p>")
+    p(f"<p>Pero un solo agente con razonamiento medio también encontró los tres bugs de G03 en sus tres corridas, con {datos.miles(datos.media(gmed['tokens_entrada']))} tokens contra {datos.miles(datos.media(gm['tokens_entrada']))} del multiagente. Su promedio es más bajo ({datos.dec(datos.media(gmed['encontrados']))} de 14) solo por la corrida en la que perdió todos los hallazgos de G01, que es el tercer caso de 2.c. Estos resultados apuntan a que repartir el trabajo ayuda más cuando el código es más complejo, pero no alcanzan para afirmarlo, porque son tres casos que escribí yo y G03 añade archivos completos, que es menos común que modificar funciones.</p>")
 
     p("<h3>4.3 — El tiempo, y las llamadas que no devuelven nada</h3>")
     t_base, t_multi = datos.segundos_por_caso("baseline", "grande"), datos.segundos_por_caso("multiagente", "grande")
@@ -336,9 +332,9 @@ def parte4(p, tabla, datos, **k):
     filas = [["Un caso de los 14 (promedio)", f"{prom([x for v in t14_base.values() for x in v]):.0f}", f"{prom([x for v in t14_multi.values() for x in v]):.0f}", "—"]]
     for caso in ("G01", "G02", "G03"):
         filas.append([caso, f"{prom(t_base[caso]):.0f}", f"{prom(t_multi[caso]):.0f}", f"{max(t_multi[caso]):.0f}"])
-    p("<p>El sistema multiagente no solo usa más tokens, también tarda bastante más. En los casos difíciles la diferencia es todavía mayor.</p>")
+    p("<p>El sistema multiagente también tarda bastante más, sobre todo en los casos difíciles.</p>")
     p(tabla(["caso", "baseline, segundos", "multiagente, segundos", "multiagente, peor corrida"], filas, numericas=(1, 2, 3)))
-    p("<p>Me llamó la atención que tardara tanto, porque los cambios no son grandes (el mayor tiene 213 líneas) y un agente no lee todo el repositorio, solo recibe el diff y abre dos o tres archivos. Revisé las trazas llamada por llamada y la causa principal era otra. Hay llamadas en las que el modelo gasta todos los tokens de salida razonando y no devuelve nada. Es el mismo comportamiento que ya había aparecido en la Parte 0, y vuelve a aparecer cuando la entrada es más larga.</p>")
+    p("<p>Me llamó la atención porque los cambios no son grandes y un agente solo recibe el diff y abre dos o tres archivos. Al revisar las trazas, la causa principal eran llamadas en las que el modelo gasta todos sus tokens de salida razonando y no devuelve nada, que es lo mismo que ya había pasado en la Parte 0.</p>")
     filas = []
     for etiqueta, prefijo in (("Baseline, 14 casos", "baseline"), ("Multiagente, 14 casos", "multiagente"), ("Baseline, casos difíciles", "baseline_grande"),
                               ("Un agente con razonamiento medio, casos difíciles", "baseline_razonamiento_medio_grande"),
@@ -346,7 +342,7 @@ def parte4(p, tabla, datos, **k):
         v = datos.llamadas_vacias(prefijo)
         filas.append([etiqueta, v["llamadas"], v["vacias"], f"{v['seg_vacias']:.0f}", f"{100 * v['seg_vacias'] / v['seg_modelo']:.0f} %", f"{v['mas_lenta']:.0f}"])
     p(tabla(["corridas (suma de las tres)", "llamadas al modelo", "vacías", "segundos en llamadas vacías", "parte del tiempo de modelo", "llamada más lenta, s"], filas, numericas=(1, 2, 3, 4, 5)))
-    p("<p>En los casos pequeños casi no pasa. En los difíciles estas llamadas se llevan más del 40 % del tiempo, y al sistema multiagente le afecta más porque hace unas diez veces más llamadas. Detrás había tres decisiones mías que estuvieron mal. Cuando la primera llamada salió vacía subí el cupo de salida a 8 192 tokens, y con eso el fallo solo tardaba más en aparecer. El reintento repetía la misma llamada sin cambiar nada. Y no había un límite de tiempo que cortara una llamada de dos minutos y medio.</p>")
+    p("<p>En los casos pequeños casi no pasa, pero en los difíciles estas llamadas se llevan más del 40 % del tiempo, y al multiagente le afecta más porque hace unas diez veces más llamadas. Había tres decisiones mías que estaban mal: subí el cupo de salida a 8 192 tokens cuando la primera llamada salió vacía, el reintento repetía la misma llamada, y no había un límite de tiempo por llamada.</p>")
     filas = []
     for etiqueta, sufijo, cupo in (("Como se midió todo lo anterior", "", "8 192"), ("Con el arreglo", "arreglo", "2 048"), ("Con el arreglo y cupo intermedio (valor que se deja)", "cupo4096", "4 096")):
         prefijo = "multiagente_grande" + (f"_{sufijo}" if sufijo else "")
@@ -355,22 +351,21 @@ def parte4(p, tabla, datos, **k):
         por_corrida = [sum(tiempos[c][i] for c in tiempos) for i in range(len(next(iter(tiempos.values()))))]
         filas.append([etiqueta, cupo, ", ".join(str(n) for n in datos.encontrados_con_etiqueta("multiagente", "grande", sufijo)),
                       f"{min(por_corrida):.0f} a {max(por_corrida):.0f}", f"{v['mas_lenta']:.0f}", v["vacias"]])
-    p("<p>Lo corregí en un commit aparte y volví a medir el sistema multiagente con los tres casos difíciles. Los cambios fueron un cupo de salida más bajo, que se puede configurar por rol, un máximo de 60 segundos por llamada, y un reintento que usa siempre el nivel de razonamiento más bajo.</p>")
+    p("<p>Lo corregí con un cupo de salida más bajo, un máximo de 60 segundos por llamada y un reintento con el nivel de razonamiento más bajo, y volví a medir el multiagente con los tres casos difíciles:</p>")
     p(tabla(["versión", "cupo de salida", "encontrados de 14, por corrida", "segundos por corrida", "llamada más lenta, s", "llamadas vacías"], filas, numericas=(1, 3, 4, 5)))
-    p("<p>El arreglo solo resuelve una parte del problema. Ahora ninguna llamada pasa de 60 segundos y el tiempo por corrida es más parejo, pero las llamadas vacías siguen apareciendo igual de seguido. Además, si el cupo es muy bajo algún reviewer se queda sin espacio para responder. Al probarlo también vi que la opción que debía apagar el razonamiento en este servidor no lo apaga. Lo único que lo reduce de verdad es el nivel bajo, que ya estaba puesto. Los demás sistemas no se volvieron a medir con este cambio.</p>")
+    p("<p>El arreglo solo resuelve una parte. Ninguna llamada pasa ya de 60 segundos, pero las llamadas vacías siguen apareciendo igual de seguido, y con un cupo muy bajo algún reviewer se queda sin espacio para responder. Los demás sistemas no se volvieron a medir con este cambio.</p>")
 
 
 def conclusiones(p, **k):
     p("<h2>Conclusiones</h2>")
     p("<ol>"
-      "<li>En cambios pequeños, usar varios agentes no encontró mucho más que usar uno. La diferencia fue de uno o dos casos de 14, que es lo mismo que cambia entre dos corridas del mismo sistema. Y desaparece si el agente único razona un poco más.</li>"
-      "<li>En código donde hay que seguir varias piezas para ver el problema, sí hubo diferencia. Con razonamiento bajo o alto, ningún agente único encontró el bug de herencia del caso complejo, y el sistema multiagente lo encontró siempre. Con razonamiento medio, un solo agente también lo encontró.</li>"
-      "<li>Antes de añadir agentes conviene mejorar el que ya se tiene. Con mejores instrucciones y razonamiento medio, un solo agente llegó casi al mismo resultado con menos de la mitad de los tokens. Eso sí, no fue más rápido, porque razonar más también toma más tiempo.</li>"
-      "<li>Lo que sí aporta el sistema multiagente es que cita mejor la regla que se incumple y que no pierde toda la revisión cuando una llamada falla. A cambio usa cinco veces más tokens, tarda más y a veces reporta algo en cambios que estaban bien.</li>"
-      "<li>De las piezas del sistema, el RAG sí valió la pena y el verificador no. El RAG permite citar la regla y reduce los hallazgos de más. El verificador revisa si lo que se afirma es verdad, pero no si es un problema, y usa un tercio de los tokens.</li>"
-      "<li>Lo que más ayudó a no llegar a conclusiones equivocadas fue lo que no depende del modelo: las comprobaciones en código, las trazas y volver a medir con un control. Varias conclusiones que tuve en el camino resultaron falsas cuando las revisé así.</li>"
+      "<li>En cambios pequeños, varios agentes encontraron uno o dos problemas más que uno solo, que es lo mismo que cambia entre dos corridas del mismo sistema.</li>"
+      "<li>En código más complejo la diferencia fue grande con razonamiento bajo o alto. Con razonamiento medio, un solo agente también encontró los bugs del caso complejo.</li>"
+      "<li>Por eso, antes de añadir agentes conviene mejorar el que ya se tiene, con mejores instrucciones y más razonamiento. Cuesta menos tokens, aunque no es más rápido.</li>"
+      "<li>El sistema multiagente aporta dos cosas: cita mejor la regla que se incumple y no pierde toda la revisión si una llamada falla. A cambio usa cinco veces más tokens y a veces reporta de más.</li>"
+      "<li>De sus piezas, el RAG valió la pena y el verificador no.</li>"
+      "<li>Varias conclusiones que tuve en el camino resultaron falsas. Lo que permitió verlo fue tener las trazas, repetir las mediciones y comparar siempre contra un control.</li>"
       "</ol>")
-    p("<p>De todo este recorrido me quedo con dos cosas. La primera es que varias conclusiones que en algún momento parecían claras (que el baseline era mucho peor, que sin RAG se perdía un caso, que solo el multiagente resolvía el caso complejo) resultaron ser ruido entre corridas, un prompt mal adaptado o una medición que faltaba. La segunda es que todas se detectaron de la misma forma: teniendo las trazas y volviendo a medir con un control.</p>")
 
 
 def parte5(p, datos, **k):
@@ -381,14 +376,14 @@ def parte5(p, datos, **k):
     c = datos.calibracion()
     peor_pasos = max(c["pasos"]["baseline"])
     p("<h2>Parte 5 — Reflexión</h2>")
-    p("<p><b>1. ¿En qué es un agente basado en objetivos y en qué no?</b> Se parece a un agente basado en objetivos en que busca llegar a un resultado (entregar un review) y elige sus acciones según lo que va viendo. Nadie le dice qué archivo leer ni qué buscar. Pero no lo es del todo, porque el objetivo no está escrito en ningún lugar que el programa pueda comprobar. El objetivo está como texto en el prompt (<code>agentes/prompts.py</code>) y no hay una prueba que diga &quot;ya se cumplió&quot;. Dentro del bucle, el que decide que terminó es el modelo, cuando deja de pedir herramientas (la función <code>siguiente</code> en <code>agentes/bucle.py</code>), o un freno que lo corta. Tampoco hace un plan, decide un paso a la vez. Lo que sí decide el código es qué se publica: <code>comprobar_en_codigo</code> y el veredicto del verificador (<code>agentes/verificador.py</code>), y la revisión de procedencia del informe (<code>agentes/sintetizador.py</code>). En resumen, el objetivo lo pone una persona, el modelo decide cuándo terminó y el código decide qué se publica.</p>")
-    p(f"<p><b>2. Con <code>resultados/</code> delante.</b> En los mismos 14 casos, el baseline usó en promedio {datos.miles(tin_b)} tokens de entrada en {ll_b:.0f} llamadas ({datos.miles(tin_b / ll_b)} por llamada). El sistema multiagente usó {datos.miles(tin_m)} en {ll_m:.0f} llamadas ({datos.miles(tin_m / ll_m)} por llamada). O sea, {datos.dec(tin_m / tin_b)} veces más tokens con {datos.dec(ll_m / ll_b)} veces más llamadas. Si duplicara el tope de pasos de 12 a 24, en el peor caso los tokens de entrada no se duplicarían sino que crecerían hasta casi cuatro veces, porque en cada paso se reenvía todo el historial y lo que se va sumando es 1 + 2 + … + n observaciones. En la práctica no cambiaría nada, por dos razones que salen de mis cifras. La primera es que el agente más ocupado del baseline hizo como máximo {peor_pasos} llamadas contando la de cierre, así que no llega al tope. La segunda es que el presupuesto de tokens es un freno aparte y no cambia al mover el de pasos. Lo que cambiaría es cuál de los dos frenos salta primero si una corrida se descontrola.</p>")
-    p("<p><b>3. Un despliegue que hace daño.</b> El siguiente paso de este trabajo es un agente que aplica parches y hace commits en el repositorio de mi trabajo. Ahí el daño sería real: código incorrecto que llega a una rama compartida, o un PR de otra persona con un test malicioso que <code>correr_checks</code> ejecuta. En el servidor pondría lo que aquí sí protegió: los comandos en una lista cerrada, el proceso sin variables de entorno y sin red, la escritura limitada a una copia, y las comprobaciones en código antes de cualquier modelo. A una persona le dejaría aprobar el plan y cada commit, pero como una pausa del grafo y no como una instrucción en el prompt. La Parte 0 mostró lo que solo parecía proteger: los tests en verde (0.c) y la instrucción de &quot;no inventes&quot; en el prompt (0.a). En el caso adversarial el modelo ignoró el comentario que pedía no reportar nada, pero eso lo decidió el modelo y no es una garantía.</p>")
+    p("<p><b>1. ¿En qué es un agente basado en objetivos y en qué no?</b> Se parece en que busca llegar a un resultado, que es entregar un review, y elige sus acciones según lo que va viendo. Nadie le dice qué archivo leer ni qué buscar. Pero el objetivo no está escrito en ningún lugar que el programa pueda comprobar. Está como texto en el prompt (<code>agentes/prompts.py</code>) y no hay una prueba que diga que ya se cumplió. Dentro del bucle el que decide que terminó es el modelo, cuando deja de pedir herramientas (la función <code>siguiente</code> en <code>agentes/bucle.py</code>), o un freno que lo corta. Tampoco hace un plan, decide un paso a la vez. Lo que sí decide el código es qué se publica, con <code>comprobar_en_codigo</code> y la revisión del informe en <code>agentes/sintetizador.py</code>.</p>")
+    p(f"<p><b>2. Con <code>resultados/</code> delante.</b> En los mismos 14 casos, el baseline usó en promedio {datos.miles(tin_b)} tokens de entrada en {ll_b:.0f} llamadas y el sistema multiagente {datos.miles(tin_m)} en {ll_m:.0f}. O sea, {datos.dec(tin_m / tin_b)} veces más tokens con {datos.dec(ll_m / ll_b)} veces más llamadas. Si duplicara el tope de pasos de 12 a 24, en el peor caso los tokens de entrada no se duplicarían sino que crecerían hasta casi cuatro veces, porque en cada paso se reenvía todo el historial. En mis corridas no cambiaría nada, porque el agente más ocupado del baseline hizo como máximo {peor_pasos} llamadas y no llega al tope. Además el presupuesto de tokens es un freno aparte, así que lo que cambiaría es cuál de los dos salta primero si una corrida se descontrola.</p>")
+    p("<p><b>3. Un despliegue que hace daño.</b> El siguiente paso de este trabajo es un agente que aplica parches y hace commits en el repositorio de mi trabajo. Ahí el daño sería real: código incorrecto en una rama compartida, o un PR de otra persona con un test malicioso que <code>correr_checks</code> ejecuta. En el servidor pondría lo que aquí sí protegió, que son los comandos en una lista cerrada, el proceso sin variables de entorno y sin red, la escritura limitada a una copia y las comprobaciones en código antes de cualquier modelo. A una persona le dejaría aprobar el plan y cada commit, como una pausa del grafo. La Parte 0 mostró lo que solo parecía proteger: los tests en verde (0.c) y pedirle al modelo en el prompt que no invente (0.a).</p>")
 
 
 def evolucion(p, tabla, **k):
     p("<h2>Cómo se hizo el trabajo</h2>")
-    p("<p>El trabajo no salió al primer intento. Se siguió la regla del curso, que es hacer un baseline, medirlo, extenderlo y volver a medir, y casi todas las mediciones obligaron a cambiar algo, ya sea el código, las pruebas o la forma de medir. La tabla resume ese recorrido en el orden en que pasó, y el resto del informe sigue ese mismo orden. Cada fila corresponde a uno o más commits del repositorio.</p>")
+    p("<p>El trabajo no salió al primer intento. Se siguió la regla del curso de hacer un baseline, medirlo, extenderlo y volver a medir, y casi todas las mediciones obligaron a cambiar algo. La tabla resume ese recorrido en orden, y el resto del informe sigue ese mismo orden.</p>")
     p(tabla(["paso", "qué se hizo", "qué mostró la medición", "qué se cambió por eso"], [
         ["1", "Parte 0, antes de construir nada",
          "El modelo de la H200 gastó los 4 096 tokens en razonar y devolvió una respuesta vacía, sin error",
@@ -421,34 +416,32 @@ def evolucion(p, tabla, **k):
          "Un solo agente con razonamiento medio encontró los 14 problemas en sus tres corridas, y los tres bugs del caso complejo",
          "La conclusión del taller pasó de &quot;el multiagente gana en código difícil&quot; a &quot;primero conviene ajustar el agente único&quot;"],
     ]))
-    p("<p><b>Cómo fueron cambiando las pruebas.</b> Los casos de prueba tampoco fueron los mismos desde el inicio. Primero hice 14 casos pequeños, uno o dos por cada tipo de problema. Sirvieron para ver en qué fallaba el baseline (C09, C10 y C11), pero después casi todos los sistemas los resolvían completos y ya no permitían diferenciarlos. Los dos casos que estaban bien (N01 y N02) sirvieron para ver que el multiagente a veces reporta de más, y también mostraron que uno de ellos no estaba tan bien armado. Después junté varios casos en dos PR grandes (G01 y G02), pensando que con más cambios a la vez un agente único se perdería. Sí bajó, pero poco. El caso que más sirvió fue el último (G03), con herencia, inyección de dependencias y caché: ahí los agentes únicos con razonamiento bajo o alto encontraron la mitad de los bugs o menos, y el multiagente los encontró todos. Y con ese mismo caso se vio que el razonamiento medio también los encuentra.</p>")
+    p("<p>Los casos de prueba también fueron cambiando. Los 14 casos pequeños sirvieron para ver en qué fallaba el baseline, pero después casi todos los sistemas los resolvían y ya no permitían diferenciarlos. Los dos PR grandes bajaron un poco al agente único. El caso que más sirvió fue el último, el complejo, porque fue el único donde los sistemas se separaron con claridad.</p>")
 
 
 def limitaciones(p, tabla, **k):
     p("<h2>Limitaciones</h2>")
-    p("<p>Los errores que cometí al medir están contados en la sección &quot;Cómo se hizo el trabajo&quot; (pasos 3 a 7) y se corrigieron antes de la medición final. Aparte de eso, el trabajo todavía tiene estas limitaciones:</p>")
+    p("<p>Los errores que cometí al medir están en la sección &quot;Cómo se hizo el trabajo&quot; y se corrigieron antes de la medición final. Aparte de eso, el trabajo tiene estas limitaciones:</p>")
     p("<ul>"
-      "<li><b>El repositorio de prueba es pequeño</b>: unos diez archivos, que un solo agente lee casi enteros en cuatro pasos. Los tres casos difíciles de la Parte 4 son una aproximación, no un repositorio real: los escribió la misma persona que el sistema, y el caso complejo añade archivos completos en vez de modificar funciones.</li>"
-      "<li><b>Las falsas alarmas casi no se miden</b>: solo hay dos casos limpios. Los hallazgos &quot;no esperados&quot; de los demás casos no los juzga nadie y algunos pueden ser legítimos.</li>"
-      "<li><b>El acierto es por ubicación y palabras clave</b>, con rangos de líneas amplios en algunos casos: un hallazgo poco preciso que caiga en la línea correcta puede contarse como acierto.</li>"
-      "<li><b>El golden set, el sistema y los prompts los hice yo</b>, y ajusté los prompts viendo los resultados del propio golden set. No hay casos guardados que no se hayan mirado.</li>"
-      "<li><b>Son solo tres repeticiones.</b> Sirven para ver cuánto cambia un resultado entre corridas, pero no alcanzan para medirlo bien.</li>"
-      "<li><b>Los tiempos son aproximados</b>: cuatro casos corren en paralelo sobre una GPU compartida, y dependen mucho de las llamadas vacías, que no ocurren igual en cada corrida.</li>"
-      "<li><b>El último arreglo se midió solo en un sistema.</b> El cambio de cupo, tiempo y reintento de la Parte 4.3 se probó con el multiagente sobre los casos difíciles. El resto de las cifras del informe son anteriores a ese cambio.</li>"
-      "<li><b>Las llamadas vacías no están resueltas.</b> Solo se limitó cuánto pueden tardar, y falta un límite de tiempo para la corrida completa.</li>"
+      "<li>El repositorio de prueba es pequeño y los casos difíciles son solo tres. No es lo mismo que un repositorio real.</li>"
+      "<li>Solo hay dos casos correctos, así que casi no se mide cuándo el sistema reporta algo que no es un problema. Los hallazgos no esperados de los otros casos no se revisaron uno por uno.</li>"
+      "<li>Un acierto se cuenta por archivo, línea y palabras clave, así que un hallazgo poco preciso en la línea correcta puede contar.</li>"
+      "<li>El golden set, el sistema y los prompts los hice yo, y ajusté los prompts viendo los resultados del mismo golden set.</li>"
+      "<li>Son solo tres corridas por sistema, y los tiempos son aproximados porque varios casos corren a la vez en una GPU compartida.</li>"
+      "<li>Las llamadas vacías no están resueltas, y el último arreglo solo se midió en el multiagente con los casos difíciles. El resto de las cifras son anteriores a ese cambio.</li>"
       "</ul>")
 
 
 def futuro(p, **k):
     p("<h2>Trabajo futuro</h2>")
-    p("<p>El objetivo que motivó el taller sigue siendo llevar <code>dev-cycle</code> completo a LangGraph. Lo que se midió aquí cambia la razón para hacerlo. La ventaja no es que más agentes siempre encuentren más. La ventaja es que el flujo, las aprobaciones y los límites pasan de estar en una receta a estar en código, que el sistema no depende de un solo proveedor y que cada paso se puede medir. También queda una forma de decidir cuántos agentes usar: empezar con uno bien ajustado y añadir otro solo cuando una medición muestre que ayuda, como pasó con el de impacto. El orden previsto:</p>")
+    p("<p>El objetivo sigue siendo llevar <code>dev-cycle</code> completo a LangGraph. Lo que se midió aquí deja una forma de hacerlo: empezar con un agente bien ajustado y añadir otro solo cuando una medición muestre que ayuda, como pasó con el de impacto. Los siguientes pasos serían:</p>")
     p("<ol>"
-      "<li><b>Un repositorio de prueba difícil.</b> Código real, o escrito a propósito con muchas dependencias entre piezas, diffs grandes y dependencias a varios saltos, con su golden set y casos reservados que no se miren al ajustar prompts. Es la condición para saber si repartir el trabajo ayuda donde un agente solo se queda corto.</li>"
-      "<li><b>Resolver feedback (<code>review-comments</code>).</b> Un comentario de PR es un hallazgo que viene de fuera: reutiliza la ficha y el verificador, y añade un clasificador y un redactor de respuestas. Publicar pasa por una pausa de aprobación.</li>"
-      "<li><b>El ciclo completo (<code>dev-cycle</code>).</b> Planificador, implementador y explicador, con este revisor como subgrafo. Los dos &quot;STOP&quot; de la skill (aprobar el plan y aprobar el commit) pasarían a ser nodos <code>interrupt</code> con checkpointer, de modo que no se pueda escribir en el repo sin pasar por ellos.</li>"
-      "<li><b>El repositorio real.</b> Un <code>perfil.toml</code> para un proyecto Angular, que es donde se quiere usar. El implementador es el rol donde más sentido tiene probar un modelo distinto, y el sistema ya lo permite.</li>"
+      "<li>Probar con un repositorio real o más difícil, con casos guardados que no se miren al ajustar los prompts.</li>"
+      "<li>Añadir la parte de <code>review-comments</code>. Un comentario de PR se puede tratar como un hallazgo que viene de fuera, y publicar la respuesta pasaría por una aprobación.</li>"
+      "<li>Añadir el resto de <code>dev-cycle</code>: planificador, implementador y explicador, con este revisor dentro. Los dos puntos de aprobación de la skill pasarían a ser pausas del grafo.</li>"
+      "<li>Usarlo en el proyecto Angular de mi trabajo, que solo necesita su propio <code>perfil.toml</code>.</li>"
       "</ol>")
-    p("<p>Mejoras ya identificadas en el sistema actual: verificar los hallazgos en una sola llamada en vez de un bucle por hallazgo, o quitar el verificador. Hacer una búsqueda inicial de reglas compartida por todos los reviewers, porque hoy varios preguntan lo mismo. Acotar la instrucción del reviewer de clean code que produce hallazgos en cambios correctos. Un presupuesto de tokens por sistema y un límite de tiempo por corrida. Y el tiempo máximo de un check en el perfil del repo.</p>")
+    p("<p>En el sistema actual quedan mejoras claras: quitar el verificador o hacer que revise todos los hallazgos en una sola llamada, buscar las reglas una sola vez para todos los reviewers, corregir la instrucción del reviewer de clean code y poner un límite de tiempo por corrida.</p>")
 
 
 def reproducibilidad(p, pre, RAIZ, **k):

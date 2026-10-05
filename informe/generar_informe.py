@@ -66,12 +66,18 @@ def pre(texto: str) -> str:
     return "<pre>" + html.escape(texto.rstrip("\n")) + "</pre>"
 
 
-def archivo(ruta: str, desde: str | None = None, hasta: str | None = None, quitar: tuple = ()) -> str:
+def archivo(ruta: str, desde: str | None = None, hasta: str | None = None, quitar: tuple = (), saltar: tuple = ()) -> str:
+    """El contenido de un archivo de salida. `saltar=(a, b)` omite desde la línea que
+    contiene a hasta la que contiene b, sin incluir esta última."""
     lineas = (RAIZ / ruta).read_text(encoding="utf-8").splitlines()
     if desde:
         lineas = lineas[next(i for i, l in enumerate(lineas) if desde in l):]
     if hasta:
         lineas = lineas[: next(i for i, l in enumerate(lineas) if hasta in l)]
+    if saltar:
+        inicio = next(i for i, l in enumerate(lineas) if saltar[0] in l)
+        fin = next(i for i, l in enumerate(lineas) if i > inicio and saltar[1] in l)
+        lineas = lineas[:inicio] + ["(...)"] + lineas[fin:]
     return pre("\n".join(l for l in lineas if not any(q in l for q in quitar)))
 
 
@@ -91,7 +97,8 @@ NOMBRES = {"reviewer_unico": "reviewer único", "reviewer_bugs": "reviewer de bu
            "reviewer_impacto": "reviewer de impacto", "verificador": "verificador", "sintetizador": "sintetizador"}
 
 
-def pasos_de(traza: str, maximo: int = 14, ancho: int = 170, solo: tuple = (), errores: bool = False) -> str:
+def pasos_de(traza: str, maximo: int = 14, ancho: int = 170, solo: tuple = (), errores: bool = False,
+             desde_el_final: bool = False) -> str:
     """Una traza como tabla. Cada fila es una acción completa de un agente: la
     herramienta que pidió junto con lo que recibió, o lo que respondió."""
     filas = []
@@ -141,7 +148,9 @@ def pasos_de(traza: str, maximo: int = 14, ancho: int = 170, solo: tuple = (), e
             filas.append(["código del sistema", e["tipo"].replace("_", " "), corto(json.dumps(detalle, ensure_ascii=False))])
         elif e["tipo"] == "cierre":
             filas.append(["código del sistema", "cierre", f"La corrida termina con estado {e['status']} y {e['uso']['tokens_entrada']} tokens de entrada."])
-    if len(filas) > maximo:
+    if len(filas) > maximo and desde_el_final:
+        filas = [["…", "…", "Pasos anteriores de la traza."]] + filas[-maximo:]
+    elif len(filas) > maximo:
         filas = filas[:maximo] + [["…", "…", "La traza continúa."]]
     return "<div class='traza'>" + tabla(["quién", "qué herramienta pide", "qué recibe o qué responde"], filas) + "</div>"
 
