@@ -68,7 +68,7 @@ def _cupo_de_salida(rol: str) -> int:
     con un cupo holgado, un modelo que se queda razonando tarda minutos en
     agotarlo antes de devolver una respuesta vacía."""
     propio = os.getenv(f"LLM_MAX_TOKENS_{rol.upper()}")
-    return int(propio or os.getenv("LLM_MAX_TOKENS", "2048"))
+    return int(propio or os.getenv("LLM_MAX_TOKENS", "4096"))
 
 
 def get_llm(rol: str = "default", esfuerzo: str | None = None):
