@@ -41,7 +41,8 @@ figure { margin: 14px 0; text-align: center; }
 figure img { max-width: 100%; }
 figcaption { font-size: 9pt; color: #444; margin-top: 4px; }
 .traza table { font-size: 7.5pt; width: 100%; }
-.traza td:nth-child(1), .traza td:nth-child(2) { white-space: nowrap; }
+.traza td:nth-child(1) { white-space: nowrap; }
+.traza td:nth-child(2) { width: 34%; }
 h2, h3 { break-after: avoid; }
 pre, figure, table { break-inside: avoid; }
 .traza table { break-inside: auto; }
@@ -85,40 +86,64 @@ def diagrama(nombre: str, pie: str) -> str:
     )
 
 
+NOMBRES = {"reviewer_unico": "reviewer único", "reviewer_bugs": "reviewer de bugs", "reviewer_reglas": "reviewer de reglas",
+           "reviewer_clean_code": "reviewer de clean code", "reviewer_eficiencia": "reviewer de eficiencia",
+           "reviewer_impacto": "reviewer de impacto", "verificador": "verificador", "sintetizador": "sintetizador"}
+
+
 def pasos_de(traza: str, maximo: int = 14, ancho: int = 170, solo: tuple = (), errores: bool = False) -> str:
-    """Una traza como tabla: qué pidió cada agente, qué recibió y qué respondió."""
+    """Una traza como tabla. Cada fila es una acción completa de un agente: la
+    herramienta que pidió junto con lo que recibió, o lo que respondió."""
     filas = []
-    agente_actual = ""
+    pendientes: dict[tuple, list] = {}  # (agente, herramienta) -> filas que esperan su resultado
 
     def corto(texto) -> str:
         texto = " ".join(str(texto).split())
         return html.escape(texto[:ancho] + ("…" if len(texto) > ancho else ""))
 
+    def respuesta_legible(texto: str) -> str:
+        try:
+            datos_json = json.loads(texto)
+        except (ValueError, TypeError):
+            return corto(texto.replace("**", "").replace("`", ""))
+        if isinstance(datos_json, dict) and "hallazgos" in datos_json:
+            hallazgos = datos_json["hallazgos"]
+            if not hallazgos:
+                return "Entrega la ficha sin ningún hallazgo."
+            primero = hallazgos[0]
+            return corto(f"Entrega {len(hallazgos)} hallazgo(s) en la ficha. El primero: {primero['archivo']}:{primero['linea']}, {primero['afirmacion']}")
+        if isinstance(datos_json, dict) and "veredicto" in datos_json:
+            return corto(f"Veredicto: {datos_json['veredicto']}. {datos_json.get('motivo', '')}")
+        return corto(texto)
+
     for e in datos.eventos(RAIZ / traza):
-        if e["tipo"] in ("llamada", "herramienta"):
-            agente_actual = e.get("agente", agente_actual)
-            if solo and not any(agente_actual.startswith(a) for a in solo):
-                continue
-        if len(filas) >= maximo:
-            filas.append(["…", "", "la traza sigue"])
-            break
+        agente = e.get("agente", "")
+        if e["tipo"] in ("llamada", "herramienta") and solo and not any(agente.startswith(a) for a in solo):
+            continue
+        quien = NOMBRES.get(agente, agente)
         if e["tipo"] == "llamada":
             if errores and e.get("error"):
-                filas.append([e["agente"], "falla", corto(f"{e['error']} ({e['tokens_salida']} tokens de salida, {e['latencia_ms'] / 1000:.0f} s)")])
+                filas.append([quien, "—", corto(f"La llamada al modelo falla: {e['error']} ({e['tokens_salida']} tokens de salida, {e['latencia_ms'] / 1000:.0f} s)")])
             elif e.get("pide"):
                 for llamada in e["pide"]:
-                    argumentos = json.dumps(llamada["argumentos"], ensure_ascii=False)
-                    filas.append([e["agente"], "pide", f"<code>{corto(llamada['nombre'] + '(' + argumentos + ')')}</code>"])
+                    argumentos = ", ".join(f"{k}={json.dumps(v, ensure_ascii=False)}" for k, v in llamada["argumentos"].items())
+                    fila = [quien, f"<code>{corto(llamada['nombre'] + '(' + argumentos + ')')}</code>", "(sin resultado en la traza)"]
+                    filas.append(fila)
+                    pendientes.setdefault((agente, llamada["nombre"]), []).append(fila)
             elif e.get("respuesta"):
-                filas.append([e["agente"], "responde", corto(e["respuesta"])])
+                filas.append([quien, "—", respuesta_legible(e["respuesta"])])
         elif e["tipo"] == "herramienta":
-            filas.append(["", "recibe", corto(e.get("resultado") or "")])
+            cola = pendientes.get((agente, e["nombre"]))
+            if cola:
+                cola.pop(0)[2] = "Recibe: " + corto(e.get("resultado") or "")
         elif e["tipo"] in ("freno", "veredicto", "unir", "comprobar_en_codigo", "procedencia"):
             detalle = {k: v for k, v in e.items() if k not in ("tipo", "t_ms")}
-            filas.append(["código", e["tipo"].replace("_", " "), corto(json.dumps(detalle, ensure_ascii=False))])
+            filas.append(["código del sistema", e["tipo"].replace("_", " "), corto(json.dumps(detalle, ensure_ascii=False))])
         elif e["tipo"] == "cierre":
-            filas.append(["código", "cierre", f"estado {e['status']}, {e['uso']['tokens_entrada']} tokens de entrada"])
-    return "<div class='traza'>" + tabla(["quién", "qué hace", "detalle"], filas) + "</div>"
+            filas.append(["código del sistema", "cierre", f"La corrida termina con estado {e['status']} y {e['uso']['tokens_entrada']} tokens de entrada."])
+    if len(filas) > maximo:
+        filas = filas[:maximo] + [["…", "…", "La traza continúa."]]
+    return "<div class='traza'>" + tabla(["quién", "qué herramienta pide", "qué recibe o qué responde"], filas) + "</div>"
 
 
 for seccion in textos.SECCIONES:

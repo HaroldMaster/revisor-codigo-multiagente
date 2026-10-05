@@ -133,7 +133,7 @@ def parte1(p, tabla, pre, pasos_de, diagrama, datos, RAIZ, recolectar, cargar_pe
     p("<p>Contrato con el Taller 4: las clases de <code>revisor/sistemas.py</code> se instancian sin argumentos y <code>.run(pregunta)</code> devuelve <code>answer</code>, <code>trace</code>, <code>status</code>, <code>model</code> y <code>usage</code>. La pregunta es la ruta de un parche.</p>")
 
     p("<h3>Dos corridas</h3>")
-    p("<p>Las dos tablas siguientes muestran los primeros pasos de dos corridas, tomados de sus trazas. La primera es el caso C01 con el baseline y la segunda el caso C11 con el sistema multiagente. Las trazas completas están en <code>resultados/trazas/</code>.</p>")
+    p("<p>Las dos tablas siguientes muestran los primeros pasos de dos corridas, tomados de sus trazas. Cada fila es una acción de un agente: la herramienta que pidió y lo que recibió, o lo que respondió cuando no pidió ninguna. En el sistema multiagente los reviewers trabajan a la vez, por eso sus filas aparecen mezcladas. La primera es el caso C01 con el baseline y la segunda el caso C11 con el sistema multiagente. Las trazas completas están en <code>resultados/trazas/</code>.</p>")
     p(pasos_de("resultados/trazas/baseline/C01.jsonl", maximo=12))
     p(pasos_de("resultados/trazas/multiagente/C11.jsonl", maximo=22))
 
