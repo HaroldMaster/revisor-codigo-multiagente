@@ -82,8 +82,8 @@ def media(valores: list[float]) -> float:
 
 
 def dec(valor: float, decimales: int = 1) -> str:
-    """Número con coma decimal, como se escribe en español."""
-    return f"{valor:.{decimales}f}".replace(".", ",")
+    """Número con punto decimal, para que no se confunda con las comas del texto."""
+    return f"{valor:.{decimales}f}"
 
 
 def media_y_rango(valores: list[float], decimales: int = 1) -> str:
