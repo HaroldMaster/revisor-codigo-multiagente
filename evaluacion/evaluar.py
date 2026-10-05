@@ -5,8 +5,12 @@
 
 Salida, en resultados/:
     resultados_<sistema>.csv   una fila por caso
-    resumen.csv                una fila por sistema
+    resumen.csv                una fila por sistema y repetición
     trazas/<sistema>/<caso>.jsonl
+
+El modelo no es determinista: dos corridas del mismo sistema no dan lo mismo.
+Con --repeticion N se mide otra vez sin pisar lo anterior (los archivos de la
+repetición N llevan el sufijo _rN), para poder reportar promedio y rango.
 """
 
 from __future__ import annotations
@@ -136,14 +140,18 @@ def comparar(caso: dict, hallazgos: list[dict]) -> dict:
 
 # ------------------------------------------------------------ correr y escribir
 
-def medir_caso(sistema: str, caso: dict) -> dict:
+def sufijo(repeticion: int) -> str:
+    return "" if repeticion == 1 else f"_r{repeticion}"
+
+
+def medir_caso(sistema: str, caso: dict, repeticion: int = 1) -> dict:
     from revisor.sistemas import SISTEMAS
 
     carpeta = Path(tempfile.mkdtemp(prefix="trazas-"))
     inicio = time.perf_counter()
     resultado = SISTEMAS[sistema](carpeta_trazas=carpeta).run(str(AQUI / caso["parche"]))
     segundos = round(time.perf_counter() - inicio, 1)
-    destino = RESULTADOS / "trazas" / sistema / f"{caso['id']}.jsonl"
+    destino = RESULTADOS / "trazas" / f"{sistema}{sufijo(repeticion)}" / f"{caso['id']}.jsonl"
     destino.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(resultado["trace"], destino)
     shutil.rmtree(carpeta, ignore_errors=True)
@@ -151,6 +159,7 @@ def medir_caso(sistema: str, caso: dict) -> dict:
     usos = [e for e in eventos if e["tipo"] == "herramienta"]
     return {
         "sistema": sistema,
+        "repeticion": repeticion,
         "caso": caso["id"],
         "tipo": caso["tipo"],
         "dimension": caso["dimension"],
@@ -176,6 +185,7 @@ def resumir(sistema: str, filas: list[dict]) -> dict:
     encontrados = sum(f["encontrados"] for f in filas)
     return {
         "sistema": sistema,
+        "repeticion": filas[0].get("repeticion", 1),
         "modelo": filas[0]["modelo"],
         "casos": len(filas),
         "esperados": esperados,
@@ -209,8 +219,11 @@ def actualizar_resumen(fila: dict) -> None:
     anteriores = []
     if ruta.exists():
         with ruta.open(encoding="utf-8") as archivo:
-            anteriores = [f for f in csv.DictReader(archivo) if f["sistema"] != fila["sistema"]]
-    escribir_csv(ruta, [*anteriores, fila])
+            anteriores = [{"repeticion": 1, **f} for f in csv.DictReader(archivo)]
+    clave = (fila["sistema"], str(fila["repeticion"]))
+    anteriores = [f for f in anteriores if (f["sistema"], str(f["repeticion"])) != clave]
+    filas = [{campo: f.get(campo, "") for campo in fila} for f in anteriores] + [fila]
+    escribir_csv(ruta, sorted(filas, key=lambda f: (f["sistema"], int(f["repeticion"]))))
 
 
 def main() -> None:
@@ -218,6 +231,7 @@ def main() -> None:
     argumentos.add_argument("--sistema", default="baseline")
     argumentos.add_argument("--solo", nargs="*", help="ids de casos, por ejemplo C01 N01")
     argumentos.add_argument("--verificar", action="store_true", help="solo comprueba la verdad de los casos")
+    argumentos.add_argument("--repeticion", type=int, default=1, help="número de repetición (1 por defecto)")
     argumentos.add_argument("--paralelo", type=int, default=4)
     opciones = argumentos.parse_args()
     casos = cargar_golden(opciones.solo)
@@ -233,7 +247,9 @@ def main() -> None:
         raise SystemExit(0 if all(v["demostrado"] for v in verificaciones) else 1)
 
     with ThreadPoolExecutor(opciones.paralelo) as hilos:
-        filas = list(hilos.map(lambda caso: medir_caso(opciones.sistema, caso), casos))
+        filas = list(
+            hilos.map(lambda caso: medir_caso(opciones.sistema, caso, opciones.repeticion), casos)
+        )
     for f in filas:
         print(
             f"{f['caso']} {f['tipo']:<11} encontrados {f['encontrados']}/{f['esperados']} · "
@@ -241,7 +257,9 @@ def main() -> None:
             f"{f['tokens_entrada']} tok · {f['segundos']} s"
         )
     if not opciones.solo:
-        escribir_csv(RESULTADOS / f"resultados_{opciones.sistema}.csv", filas)
+        escribir_csv(
+            RESULTADOS / f"resultados_{opciones.sistema}{sufijo(opciones.repeticion)}.csv", filas
+        )
         resumen = resumir(opciones.sistema, filas)
         actualizar_resumen(resumen)
         print()

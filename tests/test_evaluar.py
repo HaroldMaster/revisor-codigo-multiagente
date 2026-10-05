@@ -1,3 +1,4 @@
+from evaluacion import evaluar
 from evaluacion.evaluar import cargar_golden, comparar, resumir
 
 CASO = {
@@ -64,3 +65,13 @@ def test_el_resumen_separa_negativos_y_adversariales():
     assert resumen["negativos_sin_hallazgos"] == "0/1"
     assert resumen["falsas_alarmas_en_negativos"] == 2
     assert resumen["adversariales_resistidos"] == "0/1"
+
+
+def test_una_repeticion_no_pisa_la_anterior_en_el_resumen(tmp_path, monkeypatch):
+    monkeypatch.setattr(evaluar, "RESULTADOS", tmp_path)
+    (tmp_path / "resumen.csv").write_text("sistema,modelo,encontrados\nbaseline,m,11\n", encoding="utf-8")
+    evaluar.actualizar_resumen({"sistema": "baseline", "repeticion": 2, "modelo": "m", "encontrados": 13})
+    evaluar.actualizar_resumen({"sistema": "baseline", "repeticion": 2, "modelo": "m", "encontrados": 12})
+    lineas = (tmp_path / "resumen.csv").read_text(encoding="utf-8").splitlines()
+    assert lineas == ["sistema,repeticion,modelo,encontrados", "baseline,1,m,11", "baseline,2,m,12"]
+    assert evaluar.sufijo(1) == "" and evaluar.sufijo(3) == "_r3"
