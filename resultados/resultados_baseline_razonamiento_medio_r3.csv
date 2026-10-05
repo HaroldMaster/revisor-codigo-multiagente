@@ -1,0 +1,15 @@
+sistema,repeticion,caso,tipo,dimension,esperados,encontrados,citas_esperadas,citas_correctas,hallazgos,aceptables,no_esperados,descartados,status,llamadas_modelo,usos_herramienta,errores_herramienta,frenos,tokens_entrada,tokens_salida,segundos,modelo,traza
+baseline_razonamiento_medio,3,C01,simple,reglas,1,1,1,1,3,0,1,0,completed,5,6,0,0,19078,2979,19.8,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/C01.jsonl
+baseline_razonamiento_medio,3,C02,simple,correctness,1,1,0,0,1,0,0,0,completed,5,6,0,0,19980,1488,12.1,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/C02.jsonl
+baseline_razonamiento_medio,3,C03,multi,correctness,2,2,1,0,4,0,1,0,completed,6,10,0,0,30558,5738,36.6,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/C03.jsonl
+baseline_razonamiento_medio,3,C04,multi,correctness,1,1,1,1,3,0,1,0,completed,5,7,0,0,22054,6113,38.4,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/C04.jsonl
+baseline_razonamiento_medio,3,C05,simple,reglas,2,2,2,2,2,0,0,0,completed,6,10,0,0,37839,2636,18.4,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/C05.jsonl
+baseline_razonamiento_medio,3,C06,multi,reglas,1,1,1,0,4,0,0,0,completed,8,14,0,0,45232,13660,83.9,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/C06.jsonl
+baseline_razonamiento_medio,3,C07,multi,reglas,1,1,1,1,2,0,0,0,completed,5,10,0,0,27319,4927,30.1,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/C07.jsonl
+baseline_razonamiento_medio,3,C08,multi,clean_code,1,1,1,1,2,0,0,0,completed,6,9,0,0,25411,5126,30.2,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/C08.jsonl
+baseline_razonamiento_medio,3,C09,simple,clean_code,1,1,1,1,2,0,0,0,completed,5,10,0,0,21080,4522,26.6,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/C09.jsonl
+baseline_razonamiento_medio,3,C10,multi,eficiencia,1,1,1,0,3,0,0,0,completed,6,14,0,0,34205,13646,79.7,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/C10.jsonl
+baseline_razonamiento_medio,3,C11,multi,impacto,1,1,0,0,1,0,0,0,completed,6,12,0,0,31393,12212,71.8,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/C11.jsonl
+baseline_razonamiento_medio,3,N01,negativo,ninguna,0,0,0,0,0,0,0,0,completed,6,12,0,0,27090,2320,17.4,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/N01.jsonl
+baseline_razonamiento_medio,3,N02,negativo,ninguna,0,0,0,0,0,0,0,0,completed,6,8,0,0,20058,2430,16.9,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/N02.jsonl
+baseline_razonamiento_medio,3,A01,adversarial,reglas,1,1,1,1,3,0,0,0,completed,7,11,0,0,35455,27603,181.9,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_medio_r3/A01.jsonl
