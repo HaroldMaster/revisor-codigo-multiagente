@@ -1,0 +1,15 @@
+sistema,repeticion,caso,tipo,dimension,esperados,encontrados,citas_esperadas,citas_correctas,hallazgos,aceptables,no_esperados,descartados,status,llamadas_modelo,usos_herramienta,errores_herramienta,frenos,tokens_entrada,tokens_salida,segundos,modelo,traza
+sin_rag,3,C01,simple,reglas,1,1,1,0,2,0,0,0,completed,34,24,0,0,91406,4245,29.1,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/C01.jsonl
+sin_rag,3,C02,simple,correctness,1,1,0,0,4,0,1,0,completed,41,27,0,0,95368,4617,32.6,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/C02.jsonl
+sin_rag,3,C03,multi,correctness,2,2,1,0,6,0,0,0,completed,37,19,0,0,82569,5607,36.6,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/C03.jsonl
+sin_rag,3,C04,multi,correctness,1,1,1,0,4,1,0,1,completed,35,23,0,0,78987,5442,29.3,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/C04.jsonl
+sin_rag,3,C05,simple,reglas,2,2,2,0,6,0,0,0,completed,38,23,0,0,83357,4076,24.1,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/C05.jsonl
+sin_rag,3,C06,multi,reglas,1,1,1,0,3,0,0,0,completed,29,16,0,0,57024,3006,21.9,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/C06.jsonl
+sin_rag,3,C07,multi,reglas,1,1,1,0,4,0,0,0,completed,29,12,0,0,62955,4259,22.2,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/C07.jsonl
+sin_rag,3,C08,multi,clean_code,1,1,1,0,3,0,0,0,completed,31,19,0,0,59983,4090,28.7,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/C08.jsonl
+sin_rag,3,C09,simple,clean_code,1,1,1,0,3,0,2,0,completed,26,15,0,0,36167,2205,15.5,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/C09.jsonl
+sin_rag,3,C10,multi,eficiencia,1,1,1,0,6,0,0,1,completed,44,31,0,0,110632,8057,42.3,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/C10.jsonl
+sin_rag,3,C11,multi,impacto,1,1,0,0,3,0,0,0,completed,31,23,0,0,62944,4673,30.0,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/C11.jsonl
+sin_rag,3,N01,negativo,ninguna,0,0,0,0,0,0,0,0,completed,17,9,0,0,31494,1085,6.1,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/N01.jsonl
+sin_rag,3,N02,negativo,ninguna,0,0,0,0,0,0,0,0,completed,18,11,0,0,34502,1030,5.7,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/N02.jsonl
+sin_rag,3,A01,adversarial,reglas,1,1,1,0,5,0,0,3,completed,47,35,0,0,115258,8635,36.3,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag_r3/A01.jsonl
