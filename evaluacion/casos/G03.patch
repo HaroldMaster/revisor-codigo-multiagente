@@ -1,0 +1,259 @@
+Descripción del cambio: Añade el servicio de precios, que elige el mejor descuento entre tres estrategias (volumen, temporada y rebaja por unidad). Toda estrategia garantiza un descuento entre 0 y el subtotal. La temporada puede activarse o desactivarse mientras la aplicación corre. Los cálculos repetidos se guardan en caché.
+
+diff --git a/src/index.ts b/src/index.ts
+index 023b38d..0ab278e 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -11,3 +11,4 @@ export { Inventario } from './inventario/inventario';
+ export { IMPUESTO_PORCENTAJE, crearPedido } from './pedidos/pedidos';
+ export type { Cupon, CuponFijo, CuponPorcentaje, LineaCarrito, Pedido, Producto } from './tipos';
+ export { formatearPrecio } from './utils/dinero';
++export { crearServicioDePrecios } from './precios/composicion';
+diff --git a/src/precios/cache.ts b/src/precios/cache.ts
+new file mode 100644
+index 0000000..66b70f0
+--- /dev/null
++++ b/src/precios/cache.ts
+@@ -0,0 +1,15 @@
++type CalculoDeDescuento = (subtotalCentavos: number, cantidadTotal: number) => number;
++
++export function conCache(calcular: CalculoDeDescuento): CalculoDeDescuento {
++  const resultados = new Map<string, number>();
++  return (subtotalCentavos, cantidadTotal) => {
++    const clave = String(subtotalCentavos);
++    const guardado = resultados.get(clave);
++    if (guardado !== undefined) {
++      return guardado;
++    }
++    const resultado = calcular(subtotalCentavos, cantidadTotal);
++    resultados.set(clave, resultado);
++    return resultado;
++  };
++}
+diff --git a/src/precios/composicion.ts b/src/precios/composicion.ts
+new file mode 100644
+index 0000000..008f37c
+--- /dev/null
++++ b/src/precios/composicion.ts
+@@ -0,0 +1,37 @@
++import { Contenedor } from './contenedor';
++import {
++  DescuentoDeTemporada,
++  DescuentoPorVolumen,
++  type EstrategiaDeDescuento,
++  RebajaPorUnidad,
++} from './estrategias';
++import { ServicioDePrecios } from './servicio';
++
++const TOKEN = {
++  volumen: 'estrategia.volumen',
++  temporada: 'estrategia.temporada',
++  unidad: 'estrategia.unidad',
++  precios: 'servicio.precios',
++} as const;
++
++function crearContenedor(temporadaActiva: () => boolean): Contenedor {
++  const contenedor = new Contenedor();
++  const activa = temporadaActiva();
++  contenedor.registrar(TOKEN.volumen, () => new DescuentoPorVolumen());
++  contenedor.registrar(TOKEN.temporada, () => new DescuentoDeTemporada(() => activa));
++  contenedor.registrar(TOKEN.unidad, () => new RebajaPorUnidad());
++  contenedor.registrar(
++    TOKEN.precios,
++    (dependencias) =>
++      new ServicioDePrecios([
++        dependencias.resolver<EstrategiaDeDescuento>(TOKEN.volumen),
++        dependencias.resolver<EstrategiaDeDescuento>(TOKEN.temporada),
++        dependencias.resolver<EstrategiaDeDescuento>(TOKEN.unidad),
++      ]),
++  );
++  return contenedor;
++}
++
++export function crearServicioDePrecios(temporadaActiva: () => boolean): ServicioDePrecios {
++  return crearContenedor(temporadaActiva).resolver<ServicioDePrecios>(TOKEN.precios);
++}
+diff --git a/src/precios/contenedor.ts b/src/precios/contenedor.ts
+new file mode 100644
+index 0000000..9e00e1f
+--- /dev/null
++++ b/src/precios/contenedor.ts
+@@ -0,0 +1,21 @@
++import { ErrorValidacion } from '../errores';
++
++export class Contenedor {
++  private readonly fabricas = new Map<string, () => unknown>();
++  private readonly instancias = new Map<string, unknown>();
++
++  registrar<T>(token: string, fabrica: (contenedor: Contenedor) => T): void {
++    this.fabricas.set(token, () => fabrica(this));
++  }
++
++  resolver<T>(token: string): T {
++    if (!this.instancias.has(token)) {
++      const fabrica = this.fabricas.get(token);
++      if (fabrica === undefined) {
++        throw new ErrorValidacion(`No hay nada registrado como ${token}`);
++      }
++      this.instancias.set(token, fabrica());
++    }
++    return this.instancias.get(token) as T;
++  }
++}
+diff --git a/src/precios/estrategias.ts b/src/precios/estrategias.ts
+new file mode 100644
+index 0000000..cce12be
+--- /dev/null
++++ b/src/precios/estrategias.ts
+@@ -0,0 +1,54 @@
++import { porcentajeDe } from '../utils/dinero';
++import { asegurarEnteroNoNegativo } from '../utils/validacion';
++
++const CANTIDAD_MINIMA_VOLUMEN = 10;
++const PORCENTAJE_VOLUMEN = 5;
++const PORCENTAJE_TEMPORADA = 12;
++const REBAJA_POR_UNIDAD_CENTAVOS = 150;
++
++export abstract class EstrategiaDeDescuento {
++  abstract readonly nombre: string;
++
++  descuentoPara(subtotalCentavos: number, cantidadTotal: number): number {
++    asegurarEnteroNoNegativo(subtotalCentavos, 'subtotalCentavos');
++    asegurarEnteroNoNegativo(cantidadTotal, 'cantidadTotal');
++    const descuento = this.calcular(subtotalCentavos, cantidadTotal);
++    return Math.min(Math.max(descuento, 0), subtotalCentavos);
++  }
++
++  protected abstract calcular(subtotalCentavos: number, cantidadTotal: number): number;
++}
++
++export class DescuentoPorVolumen extends EstrategiaDeDescuento {
++  readonly nombre = 'volumen';
++
++  protected calcular(subtotalCentavos: number, cantidadTotal: number): number {
++    return cantidadTotal >= CANTIDAD_MINIMA_VOLUMEN
++      ? porcentajeDe(subtotalCentavos, PORCENTAJE_VOLUMEN)
++      : 0;
++  }
++}
++
++export class DescuentoDeTemporada extends EstrategiaDeDescuento {
++  readonly nombre = 'temporada';
++
++  constructor(private readonly estaActiva: () => boolean) {
++    super();
++  }
++
++  protected calcular(subtotalCentavos: number): number {
++    return this.estaActiva() ? porcentajeDe(subtotalCentavos, PORCENTAJE_TEMPORADA) : 0;
++  }
++}
++
++export class RebajaPorUnidad extends EstrategiaDeDescuento {
++  readonly nombre = 'unidad';
++
++  override descuentoPara(subtotalCentavos: number, cantidadTotal: number): number {
++    return this.calcular(subtotalCentavos, cantidadTotal);
++  }
++
++  protected calcular(_subtotalCentavos: number, cantidadTotal: number): number {
++    return cantidadTotal * REBAJA_POR_UNIDAD_CENTAVOS;
++  }
++}
+diff --git a/src/precios/precios.test.ts b/src/precios/precios.test.ts
+new file mode 100644
+index 0000000..25ab09f
+--- /dev/null
++++ b/src/precios/precios.test.ts
+@@ -0,0 +1,56 @@
++import { describe, expect, it } from 'vitest';
++import { ErrorValidacion } from '../errores';
++import { conCache } from './cache';
++import { crearServicioDePrecios } from './composicion';
++import { Contenedor } from './contenedor';
++import { DescuentoDeTemporada, DescuentoPorVolumen, RebajaPorUnidad } from './estrategias';
++
++describe('estrategias de descuento', () => {
++  it('volumen da el 5 % desde 10 unidades', () => {
++    const volumen = new DescuentoPorVolumen();
++    expect(volumen.descuentoPara(10000, 10)).toBe(500);
++    expect(volumen.descuentoPara(10000, 9)).toBe(0);
++  });
++
++  it('temporada da el 12 % solo si está activa', () => {
++    expect(new DescuentoDeTemporada(() => true).descuentoPara(10000, 1)).toBe(1200);
++    expect(new DescuentoDeTemporada(() => false).descuentoPara(10000, 1)).toBe(0);
++  });
++
++  it('la rebaja por unidad multiplica por la cantidad', () => {
++    expect(new RebajaPorUnidad().descuentoPara(10000, 3)).toBe(450);
++  });
++});
++
++describe('Contenedor', () => {
++  it('devuelve siempre la misma instancia para un token', () => {
++    const contenedor = new Contenedor();
++    contenedor.registrar('lista', () => []);
++    expect(contenedor.resolver('lista')).toBe(contenedor.resolver('lista'));
++  });
++
++  it('falla con un token que nadie registró', () => {
++    expect(() => new Contenedor().resolver('nada')).toThrow(ErrorValidacion);
++  });
++});
++
++describe('conCache', () => {
++  it('no vuelve a calcular para los mismos argumentos', () => {
++    let llamadas = 0;
++    const calcular = conCache((subtotalCentavos, cantidadTotal) => {
++      llamadas += 1;
++      return subtotalCentavos + cantidadTotal;
++    });
++    expect(calcular(100, 2)).toBe(102);
++    expect(calcular(100, 2)).toBe(102);
++    expect(llamadas).toBe(1);
++  });
++});
++
++describe('ServicioDePrecios', () => {
++  it('elige el mayor descuento entre las estrategias', () => {
++    const servicio = crearServicioDePrecios(() => true);
++    expect(servicio.mejorDescuento(10000, 2)).toBe(1200);
++    expect(servicio.totalConDescuento(10000, 2)).toBe(8800);
++  });
++});
+diff --git a/src/precios/servicio.ts b/src/precios/servicio.ts
+new file mode 100644
+index 0000000..6fe790a
+--- /dev/null
++++ b/src/precios/servicio.ts
+@@ -0,0 +1,29 @@
++import { conCache } from './cache';
++import type { EstrategiaDeDescuento } from './estrategias';
++
++export class ServicioDePrecios {
++  private readonly descuentoConCache: (subtotalCentavos: number, cantidadTotal: number) => number;
++
++  constructor(private readonly estrategias: readonly EstrategiaDeDescuento[]) {
++    this.descuentoConCache = conCache((subtotalCentavos, cantidadTotal) =>
++      this.calcularMejor(subtotalCentavos, cantidadTotal),
++    );
++  }
++
++  mejorDescuento(subtotalCentavos: number, cantidadTotal: number): number {
++    return this.descuentoConCache(subtotalCentavos, cantidadTotal);
++  }
++
++  totalConDescuento(subtotalCentavos: number, cantidadTotal: number): number {
++    return subtotalCentavos - this.mejorDescuento(subtotalCentavos, cantidadTotal);
++  }
++
++  private calcularMejor(subtotalCentavos: number, cantidadTotal: number): number {
++    return Math.max(
++      0,
++      ...this.estrategias.map((estrategia) =>
++        estrategia.descuentoPara(subtotalCentavos, cantidadTotal),
++      ),
++    );
++  }
++}

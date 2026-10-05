@@ -34,12 +34,12 @@ from revisor.perfil import cargar_perfil
 AQUI = Path(__file__).resolve().parent
 RAIZ = AQUI.parent
 RESULTADOS = RAIZ / "resultados"
-GOLDEN = AQUI / "golden_set.json"
+GOLDEN = {"": AQUI / "golden_set.json", "grande": AQUI / "golden_set_grande.json"}
 CHECKS = ("lint", "tipos", "tests")
 
 
-def cargar_golden(solo: list[str] | None = None) -> list[dict]:
-    casos = json.loads(GOLDEN.read_text(encoding="utf-8"))
+def cargar_golden(solo: list[str] | None = None, conjunto: str = "") -> list[dict]:
+    casos = json.loads(GOLDEN[conjunto].read_text(encoding="utf-8"))
     return [c for c in casos if not solo or c["id"] in solo]
 
 
@@ -60,37 +60,47 @@ def _test_oculto(repo: Path, caso_id: str) -> int:
     return _correr(repo, f"{perfil.checks['tests']} src/__ocultos__")
 
 
+def _demostrar(repo: Path, perfil, checks: dict, verdad: dict, caso_id: str) -> tuple[bool, str]:
+    if verdad["tipo"] == "check_falla":
+        return checks[verdad["check"]] != 0, f"el check {verdad['check']} falla con el parche"
+    if verdad["tipo"] == "test_oculto":
+        demostrado = _test_oculto(repo, caso_id) != 0
+        detalle = "el test oculto falla con el parche"
+        if verdad["pasa_en_base"]:
+            with repo_con_parches() as base:
+                demostrado = demostrado and _test_oculto(base, caso_id) == 0
+            detalle += " y pasa sin él"
+        return demostrado, detalle
+    if verdad["tipo"] == "patron":
+        texto = (repo / verdad["archivo"]).read_text(encoding="utf-8")
+        return re.search(verdad["patron"], texto, flags=re.DOTALL) is not None, "el patrón está en el archivo modificado"
+    if verdad["tipo"] == "simbolo_sin_uso":
+        apariciones = sum(
+            archivo.read_text(encoding="utf-8").count(verdad["simbolo"])
+            for archivo in perfil.archivos_de_codigo()
+            if "__ocultos__" not in archivo.parts
+        )
+        return apariciones == 1, f"{verdad['simbolo']} aparece {apariciones} vez en todo el código"
+    return not any(checks.values()), "lint, tipos y tests pasan"
+
+
 def verificar_caso(caso: dict) -> dict:
-    """Demuestra en código que el problema del caso existe (o que el caso está limpio)."""
+    """Demuestra en código que el problema del caso existe (o que el caso está limpio).
+    Un caso compuesto se demuestra parte por parte, cada una con su propia verdad."""
     verdad = caso["verdad"]
-    parche = AQUI / caso["parche"]
-    with repo_con_parches(parche) as repo:
+    with repo_con_parches(AQUI / caso["parche"]) as repo:
         perfil = cargar_perfil(repo)
         checks = {tipo: _correr(repo, perfil.checks[tipo]) for tipo in CHECKS}
-        if verdad["tipo"] == "check_falla":
-            demostrado = checks[verdad["check"]] != 0
-            detalle = f"el check {verdad['check']} falla con el parche"
-        elif verdad["tipo"] == "test_oculto":
-            demostrado = _test_oculto(repo, caso["id"]) != 0
-            detalle = "el test oculto falla con el parche"
-            if verdad["pasa_en_base"]:
-                with repo_con_parches() as base:
-                    demostrado = demostrado and _test_oculto(base, caso["id"]) == 0
-                detalle += " y pasa sin él"
-        elif verdad["tipo"] == "patron":
-            texto = (repo / verdad["archivo"]).read_text(encoding="utf-8")
-            demostrado = re.search(verdad["patron"], texto, flags=re.DOTALL) is not None
-            detalle = "el patrón está en el archivo modificado"
-        elif verdad["tipo"] == "simbolo_sin_uso":
-            apariciones = sum(
-                archivo.read_text(encoding="utf-8").count(verdad["simbolo"])
-                for archivo in perfil.archivos_de_codigo()
-            )
-            demostrado = apariciones == 1
-            detalle = f"{verdad['simbolo']} aparece {apariciones} vez en todo el código"
-        else:  # limpio
-            demostrado = not any(checks.values())
-            detalle = "lint, tipos y tests pasan"
+        if verdad["tipo"] == "compuesta":
+            partes = []
+            for parte in verdad["partes"]:
+                with repo_con_parches(AQUI / caso["parche"]) as limpio:
+                    ok, _ = _demostrar(limpio, cargar_perfil(limpio), checks, parte, parte["caso"])
+                partes.append((parte["caso"], ok))
+            demostrado = all(ok for _, ok in partes)
+            detalle = "partes demostradas: " + ", ".join(f"{c} {'sí' if ok else 'NO'}" for c, ok in partes)
+        else:
+            demostrado, detalle = _demostrar(repo, perfil, checks, verdad, caso["id"])
     silencioso = not any(checks.values())
     return {"caso": caso["id"], "demostrado": demostrado, "detalle": detalle, "checks_en_verde": silencioso}
 
@@ -140,18 +150,19 @@ def comparar(caso: dict, hallazgos: list[dict]) -> dict:
 
 # ------------------------------------------------------------ correr y escribir
 
-def sufijo(repeticion: int) -> str:
-    return "" if repeticion == 1 else f"_r{repeticion}"
+def sufijo(repeticion: int, conjunto: str = "") -> str:
+    """Sufijo de los archivos: _grande para el conjunto aparte, _rN desde la repetición 2."""
+    return (f"_{conjunto}" if conjunto else "") + ("" if repeticion == 1 else f"_r{repeticion}")
 
 
-def medir_caso(sistema: str, caso: dict, repeticion: int = 1) -> dict:
+def medir_caso(sistema: str, caso: dict, repeticion: int = 1, conjunto: str = "") -> dict:
     from revisor.sistemas import SISTEMAS
 
     carpeta = Path(tempfile.mkdtemp(prefix="trazas-"))
     inicio = time.perf_counter()
     resultado = SISTEMAS[sistema](carpeta_trazas=carpeta).run(str(AQUI / caso["parche"]))
     segundos = round(time.perf_counter() - inicio, 1)
-    destino = RESULTADOS / "trazas" / f"{sistema}{sufijo(repeticion)}" / f"{caso['id']}.jsonl"
+    destino = RESULTADOS / "trazas" / f"{sistema}{sufijo(repeticion, conjunto)}" / f"{caso['id']}.jsonl"
     destino.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(resultado["trace"], destino)
     shutil.rmtree(carpeta, ignore_errors=True)
@@ -178,7 +189,7 @@ def medir_caso(sistema: str, caso: dict, repeticion: int = 1) -> dict:
 
 
 def resumir(sistema: str, filas: list[dict]) -> dict:
-    positivos = [f for f in filas if f["tipo"] in ("simple", "multi")]
+    positivos = [f for f in filas if f["tipo"] in ("simple", "multi", "grande", "complejo")]
     negativos = [f for f in filas if f["tipo"] == "negativo"]
     adversariales = [f for f in filas if f["tipo"] == "adversarial"]
     esperados = sum(f["esperados"] for f in filas)
@@ -214,8 +225,8 @@ def escribir_csv(ruta: Path, filas: list[dict]) -> None:
         escritor.writerows(filas)
 
 
-def actualizar_resumen(fila: dict) -> None:
-    ruta = RESULTADOS / "resumen.csv"
+def actualizar_resumen(fila: dict, conjunto: str = "") -> None:
+    ruta = RESULTADOS / f"resumen{sufijo(1, conjunto)}.csv"
     anteriores = []
     if ruta.exists():
         with ruta.open(encoding="utf-8") as archivo:
@@ -232,9 +243,10 @@ def main() -> None:
     argumentos.add_argument("--solo", nargs="*", help="ids de casos, por ejemplo C01 N01")
     argumentos.add_argument("--verificar", action="store_true", help="solo comprueba la verdad de los casos")
     argumentos.add_argument("--repeticion", type=int, default=1, help="número de repetición (1 por defecto)")
+    argumentos.add_argument("--conjunto", choices=["", "grande"], default="", help="grande: los PR grandes y el caso complejo")
     argumentos.add_argument("--paralelo", type=int, default=4)
     opciones = argumentos.parse_args()
-    casos = cargar_golden(opciones.solo)
+    casos = cargar_golden(opciones.solo, opciones.conjunto)
 
     if opciones.verificar:
         with ThreadPoolExecutor(opciones.paralelo) as hilos:
@@ -243,12 +255,14 @@ def main() -> None:
             marca = "ok   " if v["demostrado"] else "FALLA"
             silencio = "checks en verde" if v["checks_en_verde"] else "algún check falla"
             print(f"{marca} {v['caso']}  {v['detalle']}  ({silencio})")
-        escribir_csv(RESULTADOS / "verificacion_golden_set.csv", verificaciones)
+        escribir_csv(RESULTADOS / f"verificacion_golden_set{sufijo(1, opciones.conjunto)}.csv", verificaciones)
         raise SystemExit(0 if all(v["demostrado"] for v in verificaciones) else 1)
 
     with ThreadPoolExecutor(opciones.paralelo) as hilos:
         filas = list(
-            hilos.map(lambda caso: medir_caso(opciones.sistema, caso, opciones.repeticion), casos)
+            hilos.map(
+                lambda caso: medir_caso(opciones.sistema, caso, opciones.repeticion, opciones.conjunto), casos
+            )
         )
     for f in filas:
         print(
@@ -258,10 +272,11 @@ def main() -> None:
         )
     if not opciones.solo:
         escribir_csv(
-            RESULTADOS / f"resultados_{opciones.sistema}{sufijo(opciones.repeticion)}.csv", filas
+            RESULTADOS / f"resultados_{opciones.sistema}{sufijo(opciones.repeticion, opciones.conjunto)}.csv",
+            filas,
         )
         resumen = resumir(opciones.sistema, filas)
-        actualizar_resumen(resumen)
+        actualizar_resumen(resumen, opciones.conjunto)
         print()
         for clave, valor in resumen.items():
             print(f"{clave:<28} {valor}")

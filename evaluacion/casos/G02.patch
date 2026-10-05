@@ -1,0 +1,171 @@
+Descripción del cambio: PR con varios cambios:
+- Simplifica reservarTodo: quita el try/catch, que solo relanzaba el error, y su test.
+- Añade resumenDePedido para mostrar un pedido en una línea.
+- Añade ordenarPorDescuento, que devuelve los cupones del que más descuenta al que menos.
+- porcentajeDe ahora trunca en vez de redondear, para no dar centavos de más en los descuentos.
+
+diff --git a/src/descuentos/descuentos.test.ts b/src/descuentos/descuentos.test.ts
+index f860b38..6efe035 100644
+--- a/src/descuentos/descuentos.test.ts
++++ b/src/descuentos/descuentos.test.ts
+@@ -1,7 +1,7 @@
+ import { describe, expect, it } from 'vitest';
+ import { ErrorCuponInvalido } from '../errores';
+ import type { Cupon } from '../tipos';
+-import { calcularDescuento, mejorCupon } from './descuentos';
++import { calcularDescuento, mejorCupon, ordenarPorDescuento } from './descuentos';
+ 
+ const diezPorCiento: Cupon = {
+   codigo: 'DIEZ',
+@@ -54,3 +54,16 @@ describe('mejorCupon', () => {
+     expect(mejorCupon(8000, [])).toBeUndefined();
+   });
+ });
++
++describe('ordenarPorDescuento', () => {
++  it('pone primero el cupón que más descuenta', () => {
++    expect(ordenarPorDescuento(8000, [cincoDolares, diezPorCiento])).toEqual([
++      diezPorCiento,
++      cincoDolares,
++    ]);
++  });
++
++  it('devuelve una lista vacía si no hay cupones', () => {
++    expect(ordenarPorDescuento(8000, [])).toEqual([]);
++  });
++});
+diff --git a/src/descuentos/descuentos.ts b/src/descuentos/descuentos.ts
+index 4ba332e..92b106b 100644
+--- a/src/descuentos/descuentos.ts
++++ b/src/descuentos/descuentos.ts
+@@ -37,3 +37,9 @@ function validarCupon(cupon: Cupon): void {
+     throw new ErrorCuponInvalido(`El cupón ${cupon.codigo} tiene un monto que no es positivo`);
+   }
+ }
++
++export function ordenarPorDescuento(subtotalCentavos: number, cupones: Cupon[]): Cupon[] {
++  return cupones.sort(
++    (a, b) => calcularDescuento(subtotalCentavos, b) - calcularDescuento(subtotalCentavos, a),
++  );
++}
+diff --git a/src/index.ts b/src/index.ts
+index 023b38d..1b39d9f 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -1,5 +1,5 @@
+ export { Carrito } from './carrito/carrito';
+-export { calcularDescuento, mejorCupon } from './descuentos/descuentos';
++export { calcularDescuento, mejorCupon, ordenarPorDescuento } from './descuentos/descuentos';
+ export {
+   ErrorCuponInvalido,
+   ErrorDominio,
+@@ -8,6 +8,6 @@ export {
+   ErrorValidacion,
+ } from './errores';
+ export { Inventario } from './inventario/inventario';
+-export { IMPUESTO_PORCENTAJE, crearPedido } from './pedidos/pedidos';
++export { IMPUESTO_PORCENTAJE, crearPedido, resumenDePedido } from './pedidos/pedidos';
+ export type { Cupon, CuponFijo, CuponPorcentaje, LineaCarrito, Pedido, Producto } from './tipos';
+ export { formatearPrecio } from './utils/dinero';
+diff --git a/src/pedidos/pedidos.test.ts b/src/pedidos/pedidos.test.ts
+index 1ec4104..7ff9192 100644
+--- a/src/pedidos/pedidos.test.ts
++++ b/src/pedidos/pedidos.test.ts
+@@ -1,9 +1,9 @@
+ import { beforeEach, describe, expect, it } from 'vitest';
+ import { Carrito } from '../carrito/carrito';
+-import { ErrorStockInsuficiente, ErrorValidacion } from '../errores';
++import { ErrorValidacion } from '../errores';
+ import { Inventario } from '../inventario/inventario';
+ import type { Cupon, Producto } from '../tipos';
+-import { crearPedido } from './pedidos';
++import { crearPedido, resumenDePedido } from './pedidos';
+ 
+ const teclado: Producto = { id: 'teclado', nombre: 'Teclado', precioCentavos: 2500 };
+ const raton: Producto = { id: 'raton', nombre: 'Ratón', precioCentavos: 1200 };
+@@ -57,12 +57,15 @@ describe('crearPedido', () => {
+   it('rechaza un carrito vacío', () => {
+     expect(() => crearPedido('P-4', carrito, inventario)).toThrow(ErrorValidacion);
+   });
++});
+ 
+-  it('deshace las reservas ya hechas si una línea no tiene stock', () => {
++describe('resumenDePedido', () => {
++  it('muestra el id y el total con formato de precio', () => {
++    const inventario = new Inventario();
++    inventario.registrar('teclado', 5);
++    const carrito = new Carrito();
+     carrito.agregar(teclado, 2);
+-    carrito.agregar(raton, 3);
+-    expect(() => crearPedido('P-5', carrito, inventario)).toThrow(ErrorStockInsuficiente);
+-    expect(inventario.disponible('teclado')).toBe(5);
+-    expect(inventario.disponible('raton')).toBe(2);
++    const pedido = crearPedido('P-9', carrito, inventario);
++    expect(resumenDePedido(pedido)).toBe('P-9: $57.50');
+   });
+ });
+diff --git a/src/pedidos/pedidos.ts b/src/pedidos/pedidos.ts
+index 61e6d75..6b26bf9 100644
+--- a/src/pedidos/pedidos.ts
++++ b/src/pedidos/pedidos.ts
+@@ -3,7 +3,7 @@ import { calcularDescuento } from '../descuentos/descuentos';
+ import { ErrorValidacion } from '../errores';
+ import type { Inventario } from '../inventario/inventario';
+ import type { Cupon, LineaCarrito, Pedido } from '../tipos';
+-import { porcentajeDe } from '../utils/dinero';
++import { formatearPrecio, porcentajeDe } from '../utils/dinero';
+ 
+ export const IMPUESTO_PORCENTAJE = 15;
+ 
+@@ -35,16 +35,12 @@ export function crearPedido(
+ }
+ 
+ function reservarTodo(lineas: readonly LineaCarrito[], inventario: Inventario): void {
+-  const reservadas: LineaCarrito[] = [];
+-  try {
+-    for (const linea of lineas) {
+-      inventario.reservar(linea.producto.id, linea.cantidad);
+-      reservadas.push(linea);
+-    }
+-  } catch (error) {
+-    for (const linea of reservadas) {
+-      inventario.liberar(linea.producto.id, linea.cantidad);
+-    }
+-    throw error;
++  for (const linea of lineas) {
++    inventario.reservar(linea.producto.id, linea.cantidad);
+   }
+ }
++
++export function resumenDePedido(pedido: any): string {
++  console.log('resumen de pedido', pedido.id);
++  return `${pedido.id}: ${formatearPrecio(pedido.totalCentavos)}`;
++}
+diff --git a/src/utils/dinero.test.ts b/src/utils/dinero.test.ts
+index e5502ed..1b113d6 100644
+--- a/src/utils/dinero.test.ts
++++ b/src/utils/dinero.test.ts
+@@ -16,8 +16,8 @@ describe('porcentajeDe', () => {
+     expect(porcentajeDe(1000, 15)).toBe(150);
+   });
+ 
+-  it('redondea al centavo más cercano', () => {
+-    expect(porcentajeDe(999, 15)).toBe(150);
++  it('trunca hacia abajo al centavo', () => {
++    expect(porcentajeDe(999, 15)).toBe(149);
+     expect(porcentajeDe(333, 10)).toBe(33);
+   });
+ });
+diff --git a/src/utils/dinero.ts b/src/utils/dinero.ts
+index 5e1d03c..f7378ab 100644
+--- a/src/utils/dinero.ts
++++ b/src/utils/dinero.ts
+@@ -7,7 +7,7 @@ export function sumarCentavos(valores: readonly number[]): number {
+ }
+ 
+ export function porcentajeDe(centavos: number, porcentaje: number): number {
+-  return Math.round((centavos * porcentaje) / PORCENTAJE_TOTAL);
++  return Math.floor((centavos * porcentaje) / PORCENTAJE_TOTAL);
+ }
+ 
+ export function formatearPrecio(centavos: number): string {

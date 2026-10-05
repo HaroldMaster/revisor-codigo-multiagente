@@ -1,0 +1,201 @@
+Descripción del cambio: PR con varios cambios:
+- Añade descuentoPorVolumen: 5 % de descuento a partir de 10 unidades, con 10 incluidas.
+- Añade Inventario.stockDe para consultar las existencias sin contar las reservas.
+- Añade el recargo por servicio del 3 % al carrito.
+- Añade formatearCantidad para el futuro resumen de pedido.
+- Añade participacionPorLinea: qué porcentaje del subtotal aporta cada línea del carrito.
+
+diff --git a/src/carrito/carrito.test.ts b/src/carrito/carrito.test.ts
+index 2163774..fc461f2 100644
+--- a/src/carrito/carrito.test.ts
++++ b/src/carrito/carrito.test.ts
+@@ -27,6 +27,13 @@ describe('Carrito', () => {
+     expect(carrito.subtotalCentavos()).toBe(8600);
+   });
+ 
++  it('calcula el recargo por servicio sobre el subtotal', () => {
++    const carrito = new Carrito();
++    carrito.agregar(teclado, 2);
++    carrito.agregar(raton, 3);
++    expect(carrito.recargoPorServicioCentavos()).toBe(258);
++  });
++
+   it('quita la línea completa de un producto', () => {
+     const carrito = new Carrito();
+     carrito.agregar(teclado, 2);
+diff --git a/src/carrito/carrito.ts b/src/carrito/carrito.ts
+index 611fd85..3b52c18 100644
+--- a/src/carrito/carrito.ts
++++ b/src/carrito/carrito.ts
+@@ -24,6 +24,10 @@ export class Carrito {
+     return this.lineasPorProducto.size === 0;
+   }
+ 
++  recargoPorServicioCentavos(): number {
++    return Math.round((this.subtotalCentavos() * 3) / 100);
++  }
++
+   subtotalCentavos(): number {
+     return sumarCentavos(
+       this.lineas().map((linea) => linea.producto.precioCentavos * linea.cantidad),
+diff --git a/src/descuentos/descuentos.test.ts b/src/descuentos/descuentos.test.ts
+index f860b38..c70ac20 100644
+--- a/src/descuentos/descuentos.test.ts
++++ b/src/descuentos/descuentos.test.ts
+@@ -1,7 +1,7 @@
+ import { describe, expect, it } from 'vitest';
+ import { ErrorCuponInvalido } from '../errores';
+ import type { Cupon } from '../tipos';
+-import { calcularDescuento, mejorCupon } from './descuentos';
++import { calcularDescuento, descuentoPorVolumen, mejorCupon } from './descuentos';
+ 
+ const diezPorCiento: Cupon = {
+   codigo: 'DIEZ',
+@@ -54,3 +54,10 @@ describe('mejorCupon', () => {
+     expect(mejorCupon(8000, [])).toBeUndefined();
+   });
+ });
++
++describe('descuentoPorVolumen', () => {
++  it('existe y se puede llamar', () => {
++    expect(descuentoPorVolumen).toBeDefined();
++    expect(() => descuentoPorVolumen(10, 20000)).not.toThrow();
++  });
++});
+diff --git a/src/descuentos/descuentos.ts b/src/descuentos/descuentos.ts
+index 4ba332e..6180354 100644
+--- a/src/descuentos/descuentos.ts
++++ b/src/descuentos/descuentos.ts
+@@ -3,6 +3,15 @@ import type { Cupon } from '../tipos';
+ import { porcentajeDe } from '../utils/dinero';
+ 
+ const PORCENTAJE_MAXIMO = 100;
++const CANTIDAD_MINIMA_VOLUMEN = 10;
++const PORCENTAJE_VOLUMEN = 5;
++
++export function descuentoPorVolumen(cantidadTotal: number, subtotalCentavos: number): number {
++  if (cantidadTotal > CANTIDAD_MINIMA_VOLUMEN) {
++    return porcentajeDe(subtotalCentavos, PORCENTAJE_VOLUMEN);
++  }
++  return 0;
++}
+ 
+ export function calcularDescuento(subtotalCentavos: number, cupon: Cupon): number {
+   validarCupon(cupon);
+diff --git a/src/index.ts b/src/index.ts
+index 023b38d..4ff89a1 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -1,5 +1,5 @@
+ export { Carrito } from './carrito/carrito';
+-export { calcularDescuento, mejorCupon } from './descuentos/descuentos';
++export { calcularDescuento, descuentoPorVolumen, mejorCupon } from './descuentos/descuentos';
+ export {
+   ErrorCuponInvalido,
+   ErrorDominio,
+@@ -8,6 +8,6 @@ export {
+   ErrorValidacion,
+ } from './errores';
+ export { Inventario } from './inventario/inventario';
+-export { IMPUESTO_PORCENTAJE, crearPedido } from './pedidos/pedidos';
++export { IMPUESTO_PORCENTAJE, crearPedido, participacionPorLinea } from './pedidos/pedidos';
+ export type { Cupon, CuponFijo, CuponPorcentaje, LineaCarrito, Pedido, Producto } from './tipos';
+ export { formatearPrecio } from './utils/dinero';
+diff --git a/src/inventario/inventario.test.ts b/src/inventario/inventario.test.ts
+index a8ac6dc..2fa058b 100644
+--- a/src/inventario/inventario.test.ts
++++ b/src/inventario/inventario.test.ts
+@@ -18,6 +18,15 @@ describe('Inventario', () => {
+     expect(() => inventario.disponible('monitor')).toThrow(ErrorProductoDesconocido);
+   });
+ 
++  it('informa las existencias sin contar las reservas', () => {
++    inventario.reservar('teclado', 2);
++    expect(inventario.stockDe('teclado')).toBe(5);
++  });
++
++  it('devuelve -1 para un producto que no existe', () => {
++    expect(inventario.stockDe('monitor')).toBe(-1);
++  });
++
+   it('descuenta lo reservado del disponible', () => {
+     inventario.reservar('teclado', 2);
+     expect(inventario.disponible('teclado')).toBe(3);
+diff --git a/src/inventario/inventario.ts b/src/inventario/inventario.ts
+index b6d5bf0..b0055e8 100644
+--- a/src/inventario/inventario.ts
++++ b/src/inventario/inventario.ts
+@@ -21,6 +21,14 @@ export class Inventario {
+     return existencia - this.reservado(productoId);
+   }
+ 
++  stockDe(productoId: string): number {
++    const existencia = this.existencias.get(productoId);
++    if (existencia === undefined) {
++      return -1;
++    }
++    return existencia;
++  }
++
+   reservar(productoId: string, cantidad: number): void {
+     asegurarEnteroPositivo(cantidad, 'cantidad');
+     const disponible = this.disponible(productoId);
+diff --git a/src/pedidos/pedidos.test.ts b/src/pedidos/pedidos.test.ts
+index 1ec4104..aaa9073 100644
+--- a/src/pedidos/pedidos.test.ts
++++ b/src/pedidos/pedidos.test.ts
+@@ -3,7 +3,7 @@ import { Carrito } from '../carrito/carrito';
+ import { ErrorStockInsuficiente, ErrorValidacion } from '../errores';
+ import { Inventario } from '../inventario/inventario';
+ import type { Cupon, Producto } from '../tipos';
+-import { crearPedido } from './pedidos';
++import { crearPedido, participacionPorLinea } from './pedidos';
+ 
+ const teclado: Producto = { id: 'teclado', nombre: 'Teclado', precioCentavos: 2500 };
+ const raton: Producto = { id: 'raton', nombre: 'Ratón', precioCentavos: 1200 };
+@@ -66,3 +66,16 @@ describe('crearPedido', () => {
+     expect(inventario.disponible('raton')).toBe(2);
+   });
+ });
++
++describe('participacionPorLinea', () => {
++  it('da el porcentaje del subtotal que aporta cada línea', () => {
++    const carrito = new Carrito();
++    carrito.agregar(teclado, 2);
++    carrito.agregar(raton, 3);
++    expect(participacionPorLinea(carrito)).toEqual([58, 42]);
++  });
++
++  it('devuelve una lista vacía con el carrito vacío', () => {
++    expect(participacionPorLinea(new Carrito())).toEqual([]);
++  });
++});
+diff --git a/src/pedidos/pedidos.ts b/src/pedidos/pedidos.ts
+index 61e6d75..5151d54 100644
+--- a/src/pedidos/pedidos.ts
++++ b/src/pedidos/pedidos.ts
+@@ -48,3 +48,12 @@ function reservarTodo(lineas: readonly LineaCarrito[], inventario: Inventario):
+     throw error;
+   }
+ }
++
++const PORCENTAJE_TOTAL = 100;
++
++export function participacionPorLinea(carrito: Carrito): number[] {
++  return carrito.lineas().map((linea) => {
++    const importeCentavos = linea.producto.precioCentavos * linea.cantidad;
++    return Math.round((importeCentavos * PORCENTAJE_TOTAL) / carrito.subtotalCentavos());
++  });
++}
+diff --git a/src/utils/dinero.ts b/src/utils/dinero.ts
+index 5e1d03c..bc8c8fc 100644
+--- a/src/utils/dinero.ts
++++ b/src/utils/dinero.ts
+@@ -17,3 +17,7 @@ export function formatearPrecio(centavos: number): string {
+   const fraccion = String(absoluto % CENTAVOS_POR_UNIDAD).padStart(DIGITOS_DE_CENTAVOS, '0');
+   return `${signo}$${unidades}.${fraccion}`;
+ }
++
++export function formatearCantidad(cantidad: number): string {
++  return `${cantidad} u.`;
++}

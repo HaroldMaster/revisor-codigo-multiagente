@@ -1,0 +1,445 @@
+[
+  {
+    "id": "G01",
+    "tipo": "grande",
+    "dimension": "varias",
+    "descripcion": "PR con varios cambios:\n- Añade descuentoPorVolumen: 5 % de descuento a partir de 10 unidades, con 10 incluidas.\n- Añade Inventario.stockDe para consultar las existencias sin contar las reservas.\n- Añade el recargo por servicio del 3 % al carrito.\n- Añade formatearCantidad para el futuro resumen de pedido.\n- Añade participacionPorLinea: qué porcentaje del subtotal aporta cada línea del carrito.",
+    "parche": "casos/G01.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/descuentos/descuentos.ts",
+            "lineas": [
+              8,
+              12
+            ]
+          }
+        ],
+        "debe_mencionar": [
+          ">=",
+          "10",
+          "incluid",
+          "límite",
+          "umbral",
+          "borde"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/descuentos/descuentos.test.ts",
+            "lineas": [
+              57,
+              63
+            ]
+          }
+        ],
+        "reglas": [
+          "R6"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/inventario/inventario.ts",
+            "lineas": [
+              22,
+              31
+            ]
+          }
+        ],
+        "reglas": [
+          "R3"
+        ],
+        "debe_mencionar": [
+          "-1"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/carrito/carrito.ts",
+            "lineas": [
+              26,
+              30
+            ]
+          }
+        ],
+        "reglas": [
+          "R14",
+          "R10",
+          "R1"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/utils/dinero.ts",
+            "lineas": [
+              19,
+              24
+            ]
+          }
+        ],
+        "reglas": [
+          "R10",
+          "R6"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/pedidos/pedidos.ts",
+            "lineas": [
+              52,
+              60
+            ]
+          }
+        ],
+        "reglas": [
+          "R15"
+        ],
+        "debe_mencionar": [
+          "subtotal"
+        ]
+      }
+    ],
+    "aceptables": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/descuentos/descuentos.ts",
+            "lineas": [
+              7,
+              15
+            ]
+          }
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/inventario/inventario.test.ts",
+            "lineas": [
+              24,
+              28
+            ]
+          }
+        ]
+      }
+    ],
+    "verdad": {
+      "tipo": "compuesta",
+      "partes": [
+        {
+          "caso": "C03",
+          "tipo": "test_oculto",
+          "pasa_en_base": false
+        },
+        {
+          "caso": "C06",
+          "tipo": "patron",
+          "archivo": "src/inventario/inventario.ts",
+          "patron": "return -1;"
+        },
+        {
+          "caso": "C08",
+          "tipo": "patron",
+          "archivo": "src/carrito/carrito.ts",
+          "patron": "\\* 3\\) / 100"
+        },
+        {
+          "caso": "C09",
+          "tipo": "simbolo_sin_uso",
+          "simbolo": "formatearCantidad"
+        },
+        {
+          "caso": "C10",
+          "tipo": "patron",
+          "archivo": "src/pedidos/pedidos.ts",
+          "patron": "map\\(\\(linea\\) => \\{[^}]*carrito\\.subtotalCentavos\\(\\)"
+        }
+      ]
+    }
+  },
+  {
+    "id": "G02",
+    "tipo": "grande",
+    "dimension": "varias",
+    "descripcion": "PR con varios cambios:\n- Simplifica reservarTodo: quita el try/catch, que solo relanzaba el error, y su test.\n- Añade resumenDePedido para mostrar un pedido en una línea.\n- Añade ordenarPorDescuento, que devuelve los cupones del que más descuenta al que menos.\n- porcentajeDe ahora trunca en vez de redondear, para no dar centavos de más en los descuentos.",
+    "parche": "casos/G02.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/pedidos/pedidos.ts",
+            "lineas": [
+              35,
+              41
+            ]
+          }
+        ],
+        "reglas": [
+          "R8"
+        ],
+        "debe_mencionar": [
+          "reserv"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/pedidos/pedidos.ts",
+            "lineas": [
+              41,
+              45
+            ]
+          }
+        ],
+        "reglas": [
+          "R2"
+        ],
+        "debe_mencionar": [
+          "any"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/pedidos/pedidos.ts",
+            "lineas": [
+              42,
+              46
+            ]
+          }
+        ],
+        "reglas": [
+          "R4"
+        ],
+        "debe_mencionar": [
+          "console"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/descuentos/descuentos.ts",
+            "lineas": [
+              39,
+              46
+            ]
+          }
+        ],
+        "reglas": [
+          "R5"
+        ],
+        "debe_mencionar": [
+          "sort",
+          "mut",
+          "modific",
+          "readonly",
+          "argument"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/utils/dinero.ts",
+            "lineas": [
+              8,
+              12
+            ]
+          },
+          {
+            "archivo": "src/pedidos/pedidos.ts",
+            "lineas": [
+              23,
+              27
+            ]
+          }
+        ],
+        "debe_mencionar": [
+          "impuesto",
+          "pedido"
+        ]
+      }
+    ],
+    "aceptables": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/pedidos/pedidos.test.ts",
+            "lineas": [
+              15,
+              59
+            ]
+          }
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/utils/dinero.test.ts",
+            "lineas": [
+              17,
+              23
+            ]
+          }
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/descuentos/descuentos.ts",
+            "lineas": [
+              12,
+              16
+            ]
+          }
+        ]
+      }
+    ],
+    "verdad": {
+      "tipo": "compuesta",
+      "partes": [
+        {
+          "caso": "C04",
+          "tipo": "test_oculto",
+          "pasa_en_base": true
+        },
+        {
+          "caso": "C05",
+          "tipo": "check_falla",
+          "check": "lint"
+        },
+        {
+          "caso": "C07",
+          "tipo": "test_oculto",
+          "pasa_en_base": false
+        },
+        {
+          "caso": "C11",
+          "tipo": "test_oculto",
+          "pasa_en_base": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "G03",
+    "tipo": "complejo",
+    "dimension": "correctness",
+    "descripcion": "Añade el servicio de precios, que elige el mejor descuento entre tres estrategias (volumen, temporada y rebaja por unidad). Toda estrategia garantiza un descuento entre 0 y el subtotal. La temporada puede activarse o desactivarse mientras la aplicación corre. Los cálculos repetidos se guardan en caché.",
+    "parche": "casos/G03.patch",
+    "esperados": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/precios/estrategias.ts",
+            "lineas": [
+              45,
+              50
+            ]
+          }
+        ],
+        "debe_mencionar": [
+          "subtotal",
+          "acot",
+          "valid",
+          "plantilla",
+          "tope",
+          "límite",
+          "limite",
+          "super",
+          "clamp"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/precios/composicion.ts",
+            "lineas": [
+              17,
+              23
+            ]
+          }
+        ],
+        "debe_mencionar": [
+          "temporada",
+          "activa"
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/precios/cache.ts",
+            "lineas": [
+              4,
+              8
+            ]
+          }
+        ],
+        "debe_mencionar": [
+          "cantidad",
+          "clave"
+        ]
+      }
+    ],
+    "aceptables": [
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/precios/cache.ts",
+            "lineas": [
+              1,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/precios/servicio.ts",
+            "lineas": [
+              5,
+              12
+            ]
+          }
+        ]
+      },
+      {
+        "ubicaciones": [
+          {
+            "archivo": "src/precios/precios.test.ts",
+            "lineas": [
+              6,
+              56
+            ]
+          }
+        ]
+      }
+    ],
+    "verdad": {
+      "tipo": "compuesta",
+      "partes": [
+        {
+          "caso": "G03a",
+          "tipo": "test_oculto",
+          "pasa_en_base": false
+        },
+        {
+          "caso": "G03b",
+          "tipo": "test_oculto",
+          "pasa_en_base": false
+        },
+        {
+          "caso": "G03c",
+          "tipo": "test_oculto",
+          "pasa_en_base": false
+        }
+      ]
+    }
+  }
+]

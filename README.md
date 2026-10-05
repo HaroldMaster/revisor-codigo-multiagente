@@ -6,7 +6,9 @@ Sistema en LangGraph que recibe un diff de un repositorio y devuelve un informe 
 
 - `repo-prueba/`: el repositorio que se revisa. Mini tienda en TypeScript con sus reglas (`CLAUDE.md`) y su perfil (`perfil.toml`).
 - `revisor/`: el sistema. Configuración del modelo, estado, herramientas, RAG y traza.
-- `evaluacion/`: la Parte 0, el modelo de guion y la copia temporal del repo.
+- `evaluacion/`: la Parte 0, el golden set, el evaluador, el modelo de guion y los frenos forzados.
+- `resultados/`: CSV crudos y trazas de todas las corridas medidas.
+- `informe/`: el generador del informe y el PDF.
 - `tests/`: pruebas del sistema; no llaman a ningún modelo.
 
 ## Preparación
@@ -50,7 +52,17 @@ La salida cruda de cada uno está en `evaluacion/parte0/salidas/`.
 .venv/bin/python -m evaluacion.evaluar --sistema multiagente
 ```
 
-Sistemas disponibles: `baseline` (un solo agente), `multiagente` (cinco reviewers, verificador y sintetizador) y las ablaciones `sin_verificador` y `sin_rag`.
+Sistemas disponibles (`revisor/sistemas.py`):
+
+| nombre | qué es |
+|---|---|
+| `baseline` | un solo agente con un prompt general |
+| `baseline_con_pistas` | control: el agente único con las instrucciones de los cinco reviewers |
+| `multiagente` | cinco reviewers, verificador y sintetizador |
+| `sin_verificador`, `sin_rag` | ablaciones del multiagente |
+| `baseline_razonamiento_alto`, `multiagente_razonamiento_alto` | extensión: `reasoning_effort` alto |
+
+El modelo no es determinista. Para medir otra vez sin pisar lo anterior: `--repeticion 2`. Para los dos PR grandes y el caso complejo, que van aparte del examen de 14 casos: `--conjunto grande` (se generan con `python -m evaluacion.construir_casos --grandes`).
 
 Los resultados crudos quedan en `resultados/`: una fila por caso en `resultados_<sistema>.csv`, una fila por sistema en `resumen.csv` y la traza de cada corrida en `trazas/`.
 
@@ -61,6 +73,14 @@ Los resultados crudos quedan en `resultados/`: una fila por caso en `resultados_
 ```
 
 Fuerza los cuatro frenos con un modelo de guion, sin gastar: tope de pasos, presupuesto de tokens, detector de repetición y tiempo máximo de un check. La salida y una traza por freno quedan en `resultados/frenos/`. Los límites se ajustan en `.env` (`REVISOR_MAX_PASOS`, `REVISOR_LIMITE_TOKENS`, `REVISOR_RESERVA_TOKENS`).
+
+## Informe
+
+```bash
+.venv/bin/python informe/generar_informe.py
+```
+
+Lee `resultados/` y escribe `informe/informe.html` e `informe/informe.pdf`. Ninguna cifra del informe está escrita a mano.
 
 ## Pruebas
 

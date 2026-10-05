@@ -4,7 +4,14 @@ Cada caso se define como una edición sobre una copia limpia de repo-prueba.
 El parche sale de `git diff`, y las líneas esperadas se calculan buscando un
 texto ancla en el archivo ya modificado: nadie escribe números de línea a mano.
 
-Uso: python -m evaluacion.construir_casos
+Uso: python -m evaluacion.construir_casos            # los 14 casos
+     python -m evaluacion.construir_casos --grandes  # dos «PR grandes» y un caso complejo
+
+Los «PR grandes» (G01, G02) juntan varios de los 14 casos en un solo parche:
+sirven para ver si un revisor deja pasar problemas cuando el diff crece. El caso
+complejo (G03) añade un módulo con herencia, inyección de dependencias y caché,
+con tres bugs en cómo se conectan las piezas. Van en su propio archivo
+(golden_set_grande.json) y no cambian el examen de 14 casos.
 """
 
 from __future__ import annotations
@@ -36,6 +43,11 @@ class Edicion:
         texto = archivo.read_text(encoding="utf-8")
         assert texto.count(viejo) == 1, f"{ruta}: se esperaba una vez {viejo!r}"
         archivo.write_text(texto.replace(viejo, nuevo), encoding="utf-8")
+
+    def crear(self, ruta: str, texto: str) -> None:
+        archivo = self.repo / ruta
+        archivo.parent.mkdir(parents=True, exist_ok=True)
+        archivo.write_text(texto, encoding="utf-8")
 
     def agregar(self, ruta: str, texto: str) -> None:
         archivo = self.repo / ruta
@@ -497,6 +509,67 @@ DEFINICIONES = [
 ]
 
 
+GRANDES = {
+    "G01": ["C03", "C06", "C08", "C09", "C10"],
+    "G02": ["C04", "C05", "C07", "C11"],
+}
+
+
+def definicion_grande(identificador: str, partes: list[str]) -> dict:
+    """Un caso que aplica las ediciones de varios casos y espera los hallazgos de todos."""
+    piezas = [d for d in DEFINICIONES if d["id"] in partes]
+
+    def editar(e: Edicion) -> None:
+        for pieza in piezas:
+            pieza["editar"](e)
+
+    return dict(
+        id=identificador, tipo="grande", dimension="varias", editar=editar,
+        descripcion="PR con varios cambios:\n" + "\n".join(f"- {p['descripcion']}" for p in piezas),
+        esperados=[e for p in piezas for e in p["esperados"]],
+        aceptables=[e for p in piezas for e in p.get("aceptables", [])],
+        verdad=dict(tipo="compuesta", partes=[{"caso": p["id"], **p["verdad"]} for p in piezas]),
+    )
+
+
+def g03(e: Edicion) -> None:
+    """Código con más indirección: herencia con método plantilla, dependencias
+    inyectadas por un contenedor y una función envuelta en caché. Los tres bugs
+    están en cómo se conectan las piezas, no en una línea que se lea sola."""
+    for archivo in sorted((CASOS / "complejo").glob("*.ts")):
+        e.crear(f"src/precios/{archivo.name}", archivo.read_text(encoding="utf-8"))
+    e.agregar("src/index.ts", "export { crearServicioDePrecios } from './precios/composicion';\n")
+
+
+COMPLEJO = dict(
+    id="G03", tipo="complejo", dimension="correctness", editar=g03,
+    descripcion=(
+        "Añade el servicio de precios, que elige el mejor descuento entre tres estrategias "
+        "(volumen, temporada y rebaja por unidad). Toda estrategia garantiza un descuento entre 0 "
+        "y el subtotal. La temporada puede activarse o desactivarse mientras la aplicación corre. "
+        "Los cálculos repetidos se guardan en caché."
+    ),
+    esperados=[
+        dict(ancla=("src/precios/estrategias.ts", "override descuentoPara", "return this.calcular("),
+             debe_mencionar=["subtotal", "acot", "valid", "plantilla", "tope", "límite", "limite", "super", "clamp"]),
+        dict(ancla=("src/precios/composicion.ts", "const activa = temporadaActiva()", "new DescuentoDeTemporada"),
+             debe_mencionar=["temporada", "activa"]),
+        dict(ancla=("src/precios/cache.ts", "const clave = String(subtotalCentavos)"),
+             debe_mencionar=["cantidad", "clave"]),
+    ],
+    aceptables=[
+        dict(ancla=("src/precios/cache.ts", "export function conCache", "};")),
+        dict(ancla=("src/precios/servicio.ts", "constructor(", ");")),
+        dict(ancla=("src/precios/precios.test.ts", "describe('estrategias", "8800")),
+    ],
+    verdad=dict(tipo="compuesta", partes=[
+        {"caso": "G03a", "tipo": "test_oculto", "pasa_en_base": False},
+        {"caso": "G03b", "tipo": "test_oculto", "pasa_en_base": False},
+        {"caso": "G03c", "tipo": "test_oculto", "pasa_en_base": False},
+    ]),
+)
+
+
 def resolver(repo: Path, entrada: dict) -> dict:
     anclas = entrada.get("alternativas") or [entrada["ancla"]]
     resuelto = {"ubicaciones": [ubicar(repo, *ancla) for ancla in anclas]}
@@ -506,10 +579,10 @@ def resolver(repo: Path, entrada: dict) -> dict:
     return resuelto
 
 
-def construir() -> list[dict]:
+def construir(definiciones: list[dict] | None = None, destino: str = "golden_set.json") -> list[dict]:
     CASOS.mkdir(exist_ok=True)
     golden = []
-    for definicion in DEFINICIONES:
+    for definicion in definiciones or DEFINICIONES:
         with repo_con_parches() as repo:
             git(repo, "init", "-q")
             git(repo, "add", "-A")
@@ -531,12 +604,18 @@ def construir() -> list[dict]:
             f"Descripción del cambio: {caso['descripcion']}\n\n{diff}", encoding="utf-8"
         )
         golden.append(caso)
-    (AQUI / "golden_set.json").write_text(
-        json.dumps(golden, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    (AQUI / destino).write_text(json.dumps(golden, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return golden
 
 
 if __name__ == "__main__":
-    for caso in construir():
+    import sys
+
+    if "--grandes" in sys.argv:
+        casos = construir(
+            [*(definicion_grande(i, p) for i, p in GRANDES.items()), COMPLEJO], "golden_set_grande.json"
+        )
+    else:
+        casos = construir()
+    for caso in casos:
         print(f"{caso['id']} {caso['tipo']:<11} {caso['dimension']:<12} esperados={len(caso['esperados'])}")
