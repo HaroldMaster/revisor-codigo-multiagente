@@ -1,0 +1,15 @@
+sistema,caso,tipo,dimension,esperados,encontrados,citas_esperadas,citas_correctas,hallazgos,aceptables,no_esperados,descartados,status,llamadas_modelo,usos_herramienta,errores_herramienta,frenos,tokens_entrada,tokens_salida,segundos,modelo,traza
+sin_rag,C01,simple,reglas,1,1,1,0,3,0,0,0,completed,37,26,0,0,95878,4282,29.1,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/C01.jsonl
+sin_rag,C02,simple,correctness,1,1,0,0,3,0,0,0,completed,34,21,0,0,74389,3860,29.1,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/C02.jsonl
+sin_rag,C03,multi,correctness,2,2,1,0,6,0,0,0,completed,36,17,0,0,75669,5880,41.6,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/C03.jsonl
+sin_rag,C04,multi,correctness,1,1,1,0,4,0,0,1,completed,33,21,0,0,70109,5251,31.1,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/C04.jsonl
+sin_rag,C05,simple,reglas,2,2,2,0,6,0,0,0,completed,38,25,0,0,83864,4541,26.4,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/C05.jsonl
+sin_rag,C06,multi,reglas,1,1,1,0,2,0,0,1,completed,28,12,0,0,50846,3211,22.7,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/C06.jsonl
+sin_rag,C07,multi,reglas,1,1,1,0,4,0,0,0,completed,28,12,0,0,60109,4168,18.9,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/C07.jsonl
+sin_rag,C08,multi,clean_code,1,1,1,0,3,0,0,0,completed,31,20,0,0,60614,3645,22.6,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/C08.jsonl
+sin_rag,C09,simple,clean_code,1,1,1,0,3,0,2,0,completed,26,16,0,0,36344,2390,17.4,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/C09.jsonl
+sin_rag,C10,multi,eficiencia,1,1,1,0,4,0,0,2,completed,42,28,0,0,104122,7359,36.3,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/C10.jsonl
+sin_rag,C11,multi,impacto,1,1,0,0,3,0,0,0,completed,32,23,0,0,64173,4309,28.8,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/C11.jsonl
+sin_rag,N01,negativo,ninguna,0,0,0,0,0,0,0,0,completed,16,9,0,0,29662,1006,5.4,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/N01.jsonl
+sin_rag,N02,negativo,ninguna,0,0,0,0,1,0,1,0,completed,26,16,0,0,48330,2530,20.6,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/N02.jsonl
+sin_rag,A01,adversarial,reglas,1,1,1,0,6,0,1,2,completed,44,31,0,0,103837,8375,32.1,zai-org/GLM-5.3-Flash,resultados/trazas/sin_rag/A01.jsonl

@@ -1,0 +1,15 @@
+sistema,caso,tipo,dimension,esperados,encontrados,citas_esperadas,citas_correctas,hallazgos,aceptables,no_esperados,descartados,status,llamadas_modelo,usos_herramienta,errores_herramienta,frenos,tokens_entrada,tokens_salida,segundos,modelo,traza
+baseline_razonamiento_alto,C01,simple,reglas,1,1,1,1,2,0,1,0,completed,5,4,0,0,18433,1024,9.7,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/C01.jsonl
+baseline_razonamiento_alto,C02,simple,correctness,1,1,0,0,1,0,0,0,completed,6,7,0,0,25949,905,9.6,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/C02.jsonl
+baseline_razonamiento_alto,C03,multi,correctness,2,2,1,0,4,0,1,0,completed,6,7,0,0,26929,2811,23.1,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/C03.jsonl
+baseline_razonamiento_alto,C04,multi,correctness,1,1,1,1,2,1,0,0,completed,4,4,0,0,12441,1055,9.1,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/C04.jsonl
+baseline_razonamiento_alto,C05,simple,reglas,2,2,2,1,2,0,0,0,completed,5,7,0,0,20822,946,8.7,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/C05.jsonl
+baseline_razonamiento_alto,C06,multi,reglas,1,1,1,1,4,1,0,0,completed,4,5,0,0,14914,1646,12.5,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/C06.jsonl
+baseline_razonamiento_alto,C07,multi,reglas,1,1,1,1,2,0,1,0,completed,4,5,0,0,15263,1905,15.7,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/C07.jsonl
+baseline_razonamiento_alto,C08,multi,clean_code,1,1,1,1,3,0,0,0,completed,6,7,0,0,20350,2046,16.5,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/C08.jsonl
+baseline_razonamiento_alto,C09,simple,clean_code,1,1,1,1,2,0,0,0,completed,8,9,0,0,25180,1278,11.8,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/C09.jsonl
+baseline_razonamiento_alto,C10,multi,eficiencia,1,1,1,0,4,0,0,0,completed,6,7,0,0,25024,3448,26.2,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/C10.jsonl
+baseline_razonamiento_alto,C11,multi,impacto,1,1,0,0,1,0,0,0,completed,6,7,0,0,21418,2778,22.9,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/C11.jsonl
+baseline_razonamiento_alto,N01,negativo,ninguna,0,0,0,0,0,0,0,0,completed,4,4,0,0,14657,380,4.6,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/N01.jsonl
+baseline_razonamiento_alto,N02,negativo,ninguna,0,0,0,0,0,0,0,0,completed,5,5,0,0,15819,636,6.5,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/N02.jsonl
+baseline_razonamiento_alto,A01,adversarial,reglas,1,1,1,1,4,0,1,0,completed,4,5,0,0,13058,1615,10.9,zai-org/GLM-5.3-Flash,resultados/trazas/baseline_razonamiento_alto/A01.jsonl

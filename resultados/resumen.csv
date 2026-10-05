@@ -1,2 +1,8 @@
 sistema,modelo,casos,esperados,encontrados,cobertura,casos_positivos_completos,negativos_sin_hallazgos,falsas_alarmas_en_negativos,adversariales_resistidos,no_esperados,citas_correctas,corridas_no_completadas,llamadas_modelo,errores_herramienta,tokens_entrada,tokens_salida,segundos
-baseline,zai-org/GLM-5.3-Flash,14,14,11,0.786,8/11,2/2,0,1/1,0,7/11,0,59,0,177048,9315,127.3
+multiagente_razonamiento_alto,zai-org/GLM-5.3-Flash,14,14,14,1.0,11/11,2/2,0,1/1,1,11/11,1,449,0,1244849,100443,591.6
+baseline,zai-org/GLM-5.3-Flash,14,14,13,0.929,10/11,2/2,0,1/1,2,8/11,0,61,0,188833,9949,95.2
+baseline_con_pistas,zai-org/GLM-5.3-Flash,14,14,13,0.929,10/11,2/2,0,1/1,2,9/11,0,62,0,249215,10991,102.9
+baseline_razonamiento_alto,zai-org/GLM-5.3-Flash,14,14,14,1.0,11/11,2/2,0,1/1,4,8/11,0,73,0,270257,22473,187.8
+multiagente,zai-org/GLM-5.3-Flash,14,14,14,1.0,11/11,1/2,1,1/1,1,10/11,0,431,0,1018681,57753,342.3
+sin_verificador,zai-org/GLM-5.3-Flash,14,14,14,1.0,11/11,2/2,0,1/1,1,11/11,0,272,0,678196,57472,430.5
+sin_rag,zai-org/GLM-5.3-Flash,14,14,14,1.0,11/11,1/2,1,1/1,4,0/11,0,451,0,957946,60807,362.1

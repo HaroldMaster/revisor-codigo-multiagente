@@ -1,0 +1,4 @@
+{"t_ms": 7, "tipo": "llamada", "agente": "reviewer", "modelo": "guion", "tokens_entrada": 100, "tokens_salida": 10, "latencia_ms": 0, "error": null, "pide": [{"nombre": "correr_checks", "argumentos": {"tipo": "tests"}}], "respuesta": ""}
+{"t_ms": 2011, "tipo": "herramienta", "agente": "reviewer", "nombre": "correr_checks", "argumentos": {"tipo": "tests"}, "tamano_resultado": 50, "latencia_ms": 2003, "error": "El check tests superó 2 s y se detuvo", "resultado": "{\"error\": \"El check tests superó 2 s y se detuvo\"}"}
+{"t_ms": 2011, "tipo": "llamada", "agente": "reviewer", "modelo": "guion", "tokens_entrada": 100, "tokens_salida": 10, "latencia_ms": 0, "error": null, "pide": [], "respuesta": "Los tests no terminaron; no pude confirmarlo."}
+{"t_ms": 2012, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 200, "tokens_salida": 20}, "uso_por_agente": {"reviewer": {"llamadas": 2, "tokens_entrada": 200, "tokens_salida": 20}}}

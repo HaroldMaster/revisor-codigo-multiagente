@@ -1,0 +1,48 @@
+=== Tope de pasos (límite 4)
+    llamadas al modelo: 5 · usos de herramienta: 3 · status: incompleto
+    FRENO: {"freno": "tope_de_pasos", "agente": "reviewer_unico", "pasos": 4}
+    saltó el freno: sí
+    respuesta entregada:
+      ## Informe de review
+      
+      > El reviewer se detuvo por tope_de_pasos: la revisión no se completó.
+      
+      - **[alto] src/pedidos/pedidos.ts:24** (reglas, pendiente)
+        El impuesto se calcula antes de restar el descuento.
+        `const impuestoCentavos = porcentajeDe(subtotalCentavos, IMPUESTO_PORCENTAJE);`
+    traza: resultados/frenos/tope_de_pasos.jsonl
+
+=== Presupuesto de tokens (120 000, con 35 000 de reserva para el cierre)
+    llamadas al modelo: 4 · usos de herramienta: 3 · status: incompleto
+    FRENO: {"freno": "presupuesto_de_tokens", "agente": "reviewer_unico", "detalle": "gastados 91500 tokens de 85000 disponibles"}
+    saltó el freno: sí
+    respuesta entregada:
+      ## Informe de review
+      
+      > El reviewer se detuvo por presupuesto_de_tokens: la revisión no se completó.
+      
+      - **[alto] src/pedidos/pedidos.ts:24** (reglas, pendiente)
+        El impuesto se calcula antes de restar el descuento.
+        `const impuestoCentavos = porcentajeDe(subtotalCentavos, IMPUESTO_PORCENTAJE);`
+    traza: resultados/frenos/presupuesto_de_tokens.jsonl
+
+=== Detector de repetición (la misma llamada más de 2 veces)
+    llamadas al modelo: 4 · usos de herramienta: 2 · status: incompleto
+    FRENO: {"freno": "repeticion", "agente": "reviewer_unico", "herramienta": "grep_repo", "argumentos": {"patron": "porcentajeDe"}, "veces": 3}
+    saltó el freno: sí
+    respuesta entregada:
+      ## Informe de review
+      
+      > El reviewer se detuvo por repeticion: la revisión no se completó.
+      
+      Sin hallazgos.
+    traza: resultados/frenos/repeticion.jsonl
+
+=== Tiempo máximo de un check (límite 2 s, el comando duerme 60 s)
+    llamadas al modelo: 2 · usos de herramienta: 1 · status: completed
+    saltó el freno: sí
+    respuesta entregada:
+      observación que recibió el modelo: {"error": "El check tests superó 2 s y se detuvo"}
+      Los tests no terminaron; no pude confirmarlo.
+    traza: resultados/frenos/tiempo_maximo.jsonl
+
