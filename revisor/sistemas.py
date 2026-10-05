@@ -7,15 +7,15 @@ from .config import get_llm
 from .multiagente import RevisorMultiagente, SinRAG, SinVerificador
 
 
-def _con_razonamiento_alto(clase, nombre: str):
+def _con_razonamiento(clase, nombre: str, esfuerzo: str):
     """Extensión: el mismo sistema, pidiéndole al modelo que razone más."""
 
-    class ConRazonamientoAlto(clase):
+    class ConOtroRazonamiento(clase):
         def __init__(self, **opciones):
-            super().__init__(llm_de=partial(get_llm, esfuerzo="high"), **opciones)
+            super().__init__(llm_de=partial(get_llm, esfuerzo=esfuerzo), **opciones)
 
-    ConRazonamientoAlto.nombre = nombre
-    return ConRazonamientoAlto
+    ConOtroRazonamiento.nombre = nombre
+    return ConOtroRazonamiento
 
 
 SISTEMAS = {
@@ -24,8 +24,9 @@ SISTEMAS = {
     "multiagente": RevisorMultiagente,
     "sin_verificador": SinVerificador,
     "sin_rag": SinRAG,
-    "baseline_razonamiento_alto": _con_razonamiento_alto(RevisorUnico, "baseline_razonamiento_alto"),
-    "multiagente_razonamiento_alto": _con_razonamiento_alto(
-        RevisorMultiagente, "multiagente_razonamiento_alto"
+    "baseline_razonamiento_medio": _con_razonamiento(RevisorUnico, "baseline_razonamiento_medio", "medium"),
+    "baseline_razonamiento_alto": _con_razonamiento(RevisorUnico, "baseline_razonamiento_alto", "high"),
+    "multiagente_razonamiento_alto": _con_razonamiento(
+        RevisorMultiagente, "multiagente_razonamiento_alto", "high"
     ),
 }
