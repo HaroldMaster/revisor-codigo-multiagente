@@ -22,6 +22,7 @@ from .agentes.reviewer import revisar
 from .config import RAIZ, get_embeddings, get_llm, id_modelo
 from .contexto import Contexto
 from .estado import Estado
+from .frenos import LIMITE_TOKENS, MAX_PASOS, RESERVA_TOKENS
 from .informe import redactar
 from .perfil import cargar_perfil
 from .rag.indice import construir_indice
@@ -39,7 +40,13 @@ class RevisorBase:
 
     nombre = "base"
 
-    def __init__(self, llm_de=get_llm, modelo_de=id_modelo, embeddings=None, carpeta_trazas=None):
+    def __init__(
+        self, llm_de=get_llm, modelo_de=id_modelo, embeddings=None, carpeta_trazas=None,
+        max_pasos=MAX_PASOS, limite_tokens=LIMITE_TOKENS, reserva_tokens=RESERVA_TOKENS,
+    ):
+        self._max_pasos = max_pasos
+        self._limite_tokens = limite_tokens
+        self._reserva_tokens = reserva_tokens
         self._llm_de = llm_de
         self._modelo_de = modelo_de
         self._embeddings = embeddings
@@ -51,7 +58,9 @@ class RevisorBase:
 
     def run(self, pregunta: str) -> dict:
         parche = Path(pregunta)
-        traza = Traza(self._carpeta_trazas)
+        traza = Traza(
+            self._carpeta_trazas, limite_tokens=self._limite_tokens, reserva_tokens=self._reserva_tokens
+        )
         modelo = self._modelo_de("default")
         traza.evento("inicio", sistema=self.nombre, parche=parche.name, modelo=modelo)
         estado: dict = {}
@@ -60,7 +69,9 @@ class RevisorBase:
             with repo_con_parches(parche, origen=self._repo) as repo:
                 perfil = cargar_perfil(repo)
                 indice = construir_indice(perfil, self._embeddings or get_embeddings())
-                contexto = Contexto(perfil, indice, traza, self._llm_de, self._modelo_de)
+                contexto = Contexto(
+                    perfil, indice, traza, self._llm_de, self._modelo_de, max_pasos=self._max_pasos
+                )
                 estado = self.grafo(contexto).invoke({"diff": parche.read_text(encoding="utf-8")})
             status = "incompleto" if estado.get("avisos") else "completed"
         except Exception as fallo:

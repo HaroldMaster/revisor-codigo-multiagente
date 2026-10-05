@@ -9,6 +9,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from ..contexto import Contexto
 from ..estado import Hallazgo
+from ..frenos import PresupuestoAgotado
 from ..informe import redactar
 from ..llamada import invocar, texto_de
 from .prompts import SINTETIZADOR
@@ -37,10 +38,13 @@ def sintetizar(hallazgos: list[Hallazgo], avisos: list[str], contexto: Contexto)
     datos = json.dumps([h.model_dump(exclude={"origen", "id"}) for h in vigentes], ensure_ascii=False, indent=1)
     mensajes = [SystemMessage(SINTETIZADOR), HumanMessage(f"Hallazgos verificados:\n{datos}")]
     for _ in range(2):
-        respuesta = invocar(
-            contexto.llm_de("sintetizador"), mensajes, agente="sintetizador",
-            modelo=contexto.modelo_de("sintetizador"), traza=contexto.traza,
-        )
+        try:
+            respuesta = invocar(
+                contexto.llm_de("sintetizador"), mensajes, agente="sintetizador",
+                modelo=contexto.modelo_de("sintetizador"), traza=contexto.traza, con_reserva=True,
+            )
+        except PresupuestoAgotado:
+            break
         informe = texto_de(respuesta).strip()
         ajenas = sin_procedencia(informe, vigentes)
         if informe and not ajenas:

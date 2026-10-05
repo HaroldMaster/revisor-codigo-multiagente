@@ -10,9 +10,20 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
+from .frenos import PresupuestoAgotado
+
+
 
 class Traza:
-    def __init__(self, carpeta: str | Path, corrida_id: str | None = None):
+    def __init__(
+        self,
+        carpeta: str | Path,
+        corrida_id: str | None = None,
+        limite_tokens: int | None = None,
+        reserva_tokens: int = 0,
+    ):
+        self.limite_tokens = limite_tokens
+        self.reserva_tokens = reserva_tokens
         self.corrida_id = corrida_id or datetime.now().strftime("%Y%m%d-%H%M%S-%f")
         self.ruta = Path(carpeta) / f"traza-{self.corrida_id}.jsonl"
         self.ruta.parent.mkdir(parents=True, exist_ok=True)
@@ -71,6 +82,17 @@ class Traza:
 
     def evento(self, tipo: str, **datos) -> None:
         self._escribir({"tipo": tipo, **datos})
+
+    def exigir_presupuesto(self, con_reserva: bool = False) -> None:
+        """Se llama antes de cada llamada al modelo. El trabajo normal puede gastar
+        hasta límite − reserva; los pasos de cierre, hasta el límite completo."""
+        if self.limite_tokens is None:
+            return
+        uso = self.uso()
+        gastado = uso["tokens_entrada"] + uso["tokens_salida"]
+        tope = self.limite_tokens if con_reserva else self.limite_tokens - self.reserva_tokens
+        if gastado >= tope:
+            raise PresupuestoAgotado(f"gastados {gastado} tokens de {tope} disponibles")
 
     def uso(self) -> dict[str, int]:
         llamadas = [e for e in self.eventos if e["tipo"] == "llamada"]

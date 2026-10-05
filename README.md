@@ -54,6 +54,14 @@ Sistemas disponibles: `baseline` (un solo agente), `multiagente` (cinco reviewer
 
 Los resultados crudos quedan en `resultados/`: una fila por caso en `resultados_<sistema>.csv`, una fila por sistema en `resumen.csv` y la traza de cada corrida en `trazas/`.
 
+## Frenos
+
+```bash
+.venv/bin/python -m evaluacion.forzar_frenos
+```
+
+Fuerza los cuatro frenos con un modelo de guion, sin gastar: tope de pasos, presupuesto de tokens, detector de repetición y tiempo máximo de un check. La salida y una traza por freno quedan en `resultados/frenos/`. Los límites se ajustan en `.env` (`REVISOR_MAX_PASOS`, `REVISOR_LIMITE_TOKENS`, `REVISOR_RESERVA_TOKENS`).
+
 ## Pruebas
 
 ```bash

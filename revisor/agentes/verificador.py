@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from ..contexto import Contexto
 from ..estado import Hallazgo
+from ..frenos import PresupuestoAgotado
 from ..llamada import invocar_estructurado
 from .bucle import ejecutar_agente
 from .prompts import VERIFICADOR, VERIFICADOR_HERRAMIENTAS
@@ -82,18 +83,26 @@ def verificar_con_modelo(hallazgo: Hallazgo, diff: str, contexto: Contexto) -> H
         f"Diff del cambio, ya aplicado al repositorio:\n```diff\n{diff}\n```\n\n"
         "Compruébalo con las herramientas y después da tu veredicto."
     )
+    sin_verificar = hallazgo.model_copy(
+        update={"veredicto": "plausible", "motivo_veredicto": "Sin verificar: se agotó el presupuesto de tokens"}
+    )
     final = ejecutar_agente(
         "verificador", VERIFICADOR, tarea, VERIFICADOR_HERRAMIENTAS, contexto, "verificador",
         MAX_PASOS_VERIFICADOR,
     )
-    decision = invocar_estructurado(
-        contexto.llm_de("verificador"),
-        Veredicto,
-        [SystemMessage(VERIFICADOR), *final["messages"], HumanMessage("Da tu veredicto sobre el hallazgo.")],
-        agente="verificador",
-        modelo=contexto.modelo_de("verificador"),
-        traza=contexto.traza,
-    )
+    if final["corte"] == "presupuesto_de_tokens":
+        return sin_verificar
+    try:
+        decision = invocar_estructurado(
+            contexto.llm_de("verificador"),
+            Veredicto,
+            [SystemMessage(VERIFICADOR), *final["messages"], HumanMessage("Da tu veredicto sobre el hallazgo.")],
+            agente="verificador",
+            modelo=contexto.modelo_de("verificador"),
+            traza=contexto.traza,
+        )
+    except PresupuestoAgotado:
+        return sin_verificar
     if decision is None:
         return hallazgo.model_copy(
             update={"veredicto": "plausible", "motivo_veredicto": "El verificador no entregó un veredicto"}

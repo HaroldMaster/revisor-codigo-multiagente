@@ -2,12 +2,15 @@
 
     inicio → modelo ──pidió herramientas y quedan pasos──→ herramientas ─┐
                 ↑─────────────────────────────────────────────────────────┘
-                └──respondió, o se alcanzó el tope de pasos──→ fin
+                └──respondió, o saltó un freno──→ fin
+
+Frenos que cortan el bucle: tope de pasos, presupuesto de tokens y repetición.
 """
 
 from __future__ import annotations
 
 import json
+from collections import Counter
 from typing import Annotated, TypedDict
 
 from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage, ToolMessage
@@ -15,6 +18,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 
 from ..contexto import Contexto
+from ..frenos import K_REPETICION, PresupuestoAgotado
 from ..herramientas import crear_herramientas
 from ..llamada import invocar
 
@@ -42,21 +46,42 @@ def ejecutar_agente(
     llm = contexto.llm_de(rol).bind_tools(list(herramientas.values()))
     modelo = contexto.modelo_de(rol)
 
+    vistas: Counter = Counter()
+
     def nodo_modelo(estado: EstadoAgente) -> dict:
-        respuesta = invocar(
-            llm,
-            [SystemMessage(sistema), *estado["messages"]],
-            agente=nombre,
-            modelo=modelo,
-            traza=contexto.traza,
-        )
+        try:
+            respuesta = invocar(
+                llm,
+                [SystemMessage(sistema), *estado["messages"]],
+                agente=nombre,
+                modelo=modelo,
+                traza=contexto.traza,
+            )
+        except PresupuestoAgotado as agotado:
+            contexto.traza.evento(
+                "freno", freno="presupuesto_de_tokens", agente=nombre, detalle=str(agotado)
+            )
+            return {"corte": "presupuesto_de_tokens"}
         return {"messages": [respuesta], "pasos": estado["pasos"] + 1}
 
     def nodo_herramientas(estado: EstadoAgente) -> dict:
         observaciones = []
+        corte = None
         for llamada in estado["messages"][-1].tool_calls:
             herramienta = herramientas.get(llamada["name"])
-            if herramienta is None:
+            clave = (llamada["name"], json.dumps(llamada["args"], sort_keys=True, ensure_ascii=False))
+            vistas[clave] += 1
+            if vistas[clave] > K_REPETICION:
+                corte = "repeticion"
+                contenido = json.dumps(
+                    {"error": f"Llamada repetida {vistas[clave]} veces con los mismos argumentos: no se ejecutó"},
+                    ensure_ascii=False,
+                )
+                contexto.traza.evento(
+                    "freno", freno="repeticion", agente=nombre, herramienta=llamada["name"],
+                    argumentos=llamada["args"], veces=vistas[clave],
+                )
+            elif herramienta is None:
                 contenido = json.dumps(
                     {"error": f"No existe la herramienta {llamada['name']}. Disponibles: {sorted(herramientas)}"},
                     ensure_ascii=False,
@@ -70,7 +95,7 @@ def ejecutar_agente(
                         ensure_ascii=False,
                     )
             observaciones.append(ToolMessage(content=contenido, tool_call_id=llamada["id"]))
-        return {"messages": observaciones}
+        return {"messages": observaciones, "corte": corte}
 
     def nodo_corte(estado: EstadoAgente) -> dict:
         # Cada llamada pendiente recibe su resultado: el historial queda coherente.
@@ -85,7 +110,7 @@ def ejecutar_agente(
         return {"messages": pendientes, "corte": "tope_de_pasos"}
 
     def siguiente(estado: EstadoAgente) -> str:
-        if not estado["messages"][-1].tool_calls:
+        if estado["corte"] or not estado["messages"][-1].tool_calls:
             return END
         return "herramientas" if estado["pasos"] < max_pasos else "corte"
 
@@ -95,7 +120,9 @@ def ejecutar_agente(
     grafo.add_node("corte", nodo_corte)
     grafo.add_edge(START, "modelo")
     grafo.add_conditional_edges("modelo", siguiente, ["herramientas", "corte", END])
-    grafo.add_edge("herramientas", "modelo")
+    grafo.add_conditional_edges(
+        "herramientas", lambda estado: END if estado["corte"] else "modelo", ["modelo", END]
+    )
     grafo.add_edge("corte", END)
 
     return grafo.compile().invoke(

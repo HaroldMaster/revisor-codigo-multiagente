@@ -78,7 +78,13 @@ class RevisorMultiagente(RevisorBase):
             por_id = {h.id: h for h in verificados}
             for h in verificados:
                 contexto.traza.evento("veredicto", id=h.id, veredicto=h.veredicto, motivo=h.motivo_veredicto)
-            return {"hallazgos": [por_id.get(h.id, h) for h in estado["hallazgos"]]}
+            sin_verificar = sum((h.motivo_veredicto or "").startswith("Sin verificar") for h in verificados)
+            avisos = (
+                [f"{sin_verificar} hallazgos quedaron sin verificar por presupuesto de tokens."]
+                if sin_verificar
+                else []
+            )
+            return {"hallazgos": [por_id.get(h.id, h) for h in estado["hallazgos"]], "avisos": avisos}
 
         def nodo_sintetizar(estado: Estado) -> dict:
             return {"informe": sintetizar(estado["hallazgos"], estado.get("avisos", []), contexto)}

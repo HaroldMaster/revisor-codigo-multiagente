@@ -15,8 +15,12 @@ def texto_de(mensaje) -> str:
     return "".join(b.get("text", "") for b in contenido if isinstance(b, dict))
 
 
-def invocar(llm, mensajes, *, agente: str, modelo: str, traza: Traza, reintentos_vacia: int = 1):
+def invocar(
+    llm, mensajes, *, agente: str, modelo: str, traza: Traza, reintentos_vacia: int = 1,
+    con_reserva: bool = False,
+):
     respuesta = None
+    traza.exigir_presupuesto(con_reserva)
     for _ in range(reintentos_vacia + 1):
         inicio = time.perf_counter()
         try:
@@ -42,12 +46,14 @@ def invocar(llm, mensajes, *, agente: str, modelo: str, traza: Traza, reintentos
 
 
 def invocar_estructurado(
-    llm, esquema, mensajes, *, agente: str, modelo: str, traza: Traza, reintentos: int = 1
+    llm, esquema, mensajes, *, agente: str, modelo: str, traza: Traza, reintentos: int = 1,
+    con_reserva: bool = False,
 ):
     """Como invocar, para una respuesta con esquema fijo. Devuelve el objeto
     validado, o None si tras los reintentos el modelo no lo entregó."""
     from .config import estructurado
 
+    traza.exigir_presupuesto(con_reserva)
     ejecutable = estructurado(llm, esquema)
     for _ in range(reintentos + 1):
         inicio = time.perf_counter()

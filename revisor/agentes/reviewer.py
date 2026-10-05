@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from ..contexto import Contexto
 from ..estado import Dimension, Hallazgo, Severidad
+from ..frenos import PresupuestoAgotado
 from ..llamada import invocar_estructurado
 from .bucle import ejecutar_agente
 from .prompts import EXTRAER_SIN_RAG_NOTA
@@ -48,14 +49,25 @@ def revisar(
 ) -> tuple[list[Hallazgo], str | None]:
     tarea = f"Revisa este diff. Los archivos del repositorio ya tienen el cambio aplicado.\n\n```diff\n{diff}\n```"
     final = ejecutar_agente(nombre, sistema, tarea, herramientas, contexto, rol, max_pasos)
-    lista = invocar_estructurado(
-        contexto.llm_de(rol),
-        ListaDeHallazgos,
-        [SystemMessage(sistema), *final["messages"], HumanMessage(EXTRAER)],
-        agente=nombre,
-        modelo=contexto.modelo_de(rol),
-        traza=contexto.traza,
-    )
+    extraer = EXTRAER
+    if "buscar_reglas" not in herramientas:
+        extraer = EXTRAER.replace(
+            "- `cita_regla` solo puede ser un id que te devolvió buscar_reglas.", EXTRAER_SIN_RAG_NOTA
+        )
+    try:
+        # Paso de cierre: puede usar la reserva, para entregar lo que el agente
+        # alcanzó a ver aunque un freno lo haya cortado.
+        lista = invocar_estructurado(
+            contexto.llm_de(rol),
+            ListaDeHallazgos,
+            [SystemMessage(sistema), *final["messages"], HumanMessage(extraer)],
+            agente=nombre,
+            modelo=contexto.modelo_de(rol),
+            traza=contexto.traza,
+            con_reserva=True,
+        )
+    except PresupuestoAgotado:
+        lista = None
     propuestos = lista.hallazgos if lista else []
     hallazgos = [
         Hallazgo(id=f"{nombre}-{numero}", **propuesto.model_dump())

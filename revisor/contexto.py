@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 from .config import get_llm, id_modelo
+from .frenos import MAX_PASOS
 from .perfil import Perfil
 from .rag.indice import Indice
 from .traza import Traza
@@ -19,4 +20,4 @@ class Contexto:
     llm_de: Callable[[str], object] = get_llm
     modelo_de: Callable[[str], str] = id_modelo
     citas_devueltas: set[str] = field(default_factory=set)
-    max_pasos: int = 12
+    max_pasos: int = MAX_PASOS
