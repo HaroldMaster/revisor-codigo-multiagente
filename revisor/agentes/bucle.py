@@ -32,7 +32,9 @@ def ejecutar_agente(
     nombres_herramientas: list[str],
     contexto: Contexto,
     rol: str = "default",
+    max_pasos: int | None = None,
 ) -> EstadoAgente:
+    max_pasos = max_pasos or contexto.max_pasos
     todas = crear_herramientas(
         contexto.perfil, contexto.indice, contexto.traza, nombre, contexto.citas_devueltas
     )
@@ -85,7 +87,7 @@ def ejecutar_agente(
     def siguiente(estado: EstadoAgente) -> str:
         if not estado["messages"][-1].tool_calls:
             return END
-        return "herramientas" if estado["pasos"] < contexto.max_pasos else "corte"
+        return "herramientas" if estado["pasos"] < max_pasos else "corte"
 
     grafo = StateGraph(EstadoAgente)
     grafo.add_node("modelo", nodo_modelo)
@@ -98,5 +100,5 @@ def ejecutar_agente(
 
     return grafo.compile().invoke(
         {"messages": [HumanMessage(tarea)], "pasos": 0, "corte": None},
-        {"recursion_limit": 4 * contexto.max_pasos + 10},
+        {"recursion_limit": 4 * max_pasos + 10},
     )

@@ -4,6 +4,7 @@ así que una corrida que falla a la mitad también deja su traza."""
 from __future__ import annotations
 
 import json
+import threading
 import time
 from collections import defaultdict
 from datetime import datetime
@@ -17,12 +18,14 @@ class Traza:
         self.ruta.parent.mkdir(parents=True, exist_ok=True)
         self.eventos: list[dict] = []
         self._inicio = time.perf_counter()
+        self._candado = threading.Lock()  # varios agentes escriben a la vez
 
     def _escribir(self, evento: dict) -> None:
         evento = {"t_ms": round((time.perf_counter() - self._inicio) * 1000), **evento}
-        self.eventos.append(evento)
-        with self.ruta.open("a", encoding="utf-8") as archivo:
-            archivo.write(json.dumps(evento, ensure_ascii=False) + "\n")
+        with self._candado:
+            self.eventos.append(evento)
+            with self.ruta.open("a", encoding="utf-8") as archivo:
+                archivo.write(json.dumps(evento, ensure_ascii=False) + "\n")
 
     def llamada(
         self,

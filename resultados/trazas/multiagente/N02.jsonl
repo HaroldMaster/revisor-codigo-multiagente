@@ -1,0 +1,33 @@
+{"t_ms": 0, "tipo": "inicio", "sistema": "multiagente", "parche": "N02.patch", "modelo": "zai-org/GLM-5.3-Flash"}
+{"t_ms": 747, "tipo": "llamada", "agente": "reviewer_clean_code", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1448, "tokens_salida": 38, "latencia_ms": 712, "error": null}
+{"t_ms": 748, "tipo": "herramienta", "agente": "reviewer_clean_code", "nombre": "leer_archivo", "argumentos": {"ruta": "src/descuentos/descuentos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1665, "latencia_ms": 0, "error": null}
+{"t_ms": 750, "tipo": "herramienta", "agente": "reviewer_clean_code", "nombre": "grep_repo", "argumentos": {"patron": "minimoCentavos", "carpeta": ""}, "tamano_resultado": 365, "latencia_ms": 2, "error": null}
+{"t_ms": 1146, "tipo": "llamada", "agente": "reviewer_reglas", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1456, "tokens_salida": 51, "latencia_ms": 1074, "error": null}
+{"t_ms": 1148, "tipo": "llamada", "agente": "reviewer_eficiencia", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1450, "tokens_salida": 50, "latencia_ms": 1099, "error": null}
+{"t_ms": 1149, "tipo": "herramienta", "agente": "reviewer_eficiencia", "nombre": "leer_archivo", "argumentos": {"ruta": "src/descuentos/descuentos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1665, "latencia_ms": 0, "error": null}
+{"t_ms": 1319, "tipo": "llamada", "agente": "reviewer_impacto", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1443, "tokens_salida": 63, "latencia_ms": 1253, "error": null}
+{"t_ms": 1322, "tipo": "herramienta", "agente": "reviewer_impacto", "nombre": "grep_repo", "argumentos": {"patron": "calcularDescuento", "carpeta": ""}, "tamano_resultado": 1298, "latencia_ms": 2, "error": null}
+{"t_ms": 1323, "tipo": "herramienta", "agente": "reviewer_impacto", "nombre": "leer_archivo", "argumentos": {"ruta": "src/descuentos/descuentos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1665, "latencia_ms": 0, "error": null}
+{"t_ms": 2085, "tipo": "llamada", "agente": "reviewer_bugs", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 1422, "tokens_salida": 80, "latencia_ms": 2054, "error": null}
+{"t_ms": 2086, "tipo": "herramienta", "agente": "reviewer_bugs", "nombre": "leer_archivo", "argumentos": {"ruta": "src/descuentos/descuentos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1665, "latencia_ms": 0, "error": null}
+{"t_ms": 2088, "tipo": "herramienta", "agente": "reviewer_bugs", "nombre": "grep_repo", "argumentos": {"patron": "minimoCentavos", "carpeta": ""}, "tamano_resultado": 365, "latencia_ms": 1, "error": null}
+{"t_ms": 2367, "tipo": "llamada", "agente": "reviewer_clean_code", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2167, "tokens_salida": 34, "latencia_ms": 1616, "error": null}
+{"t_ms": 2687, "tipo": "llamada", "agente": "reviewer_impacto", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2435, "tokens_salida": 27, "latencia_ms": 1364, "error": null}
+{"t_ms": 2688, "tipo": "herramienta", "agente": "reviewer_impacto", "nombre": "leer_archivo", "argumentos": {"ruta": "src/pedidos/pedidos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1757, "latencia_ms": 0, "error": null}
+{"t_ms": 3927, "tipo": "herramienta", "agente": "reviewer_eficiencia", "nombre": "buscar_reglas", "argumentos": {"pregunta": "normas sobre bucles y búsquedas repetidas dentro de recorridos"}, "tamano_resultado": 2832, "latencia_ms": 2778, "error": null}
+{"t_ms": 3955, "tipo": "herramienta", "agente": "reviewer_reglas", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo se calculan y comparan los importes de dinero en centavos"}, "tamano_resultado": 1655, "latencia_ms": 2808, "error": null}
+{"t_ms": 3957, "tipo": "herramienta", "agente": "reviewer_reglas", "nombre": "leer_archivo", "argumentos": {"ruta": "src/descuentos/descuentos.ts", "desde": 1, "hasta": 0}, "tamano_resultado": 1665, "latencia_ms": 1, "error": null}
+{"t_ms": 4005, "tipo": "herramienta", "agente": "reviewer_clean_code", "nombre": "buscar_reglas", "argumentos": {"pregunta": "cómo deben nombrarse las funciones y constantes para que el código sea legible y mantenible"}, "tamano_resultado": 3762, "latencia_ms": 1638, "error": null}
+{"t_ms": 5741, "tipo": "llamada", "agente": "reviewer_bugs", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2141, "tokens_salida": 130, "latencia_ms": 3653, "error": null}
+{"t_ms": 6760, "tipo": "llamada", "agente": "reviewer_bugs", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2138, "tokens_salida": 17, "latencia_ms": 1017, "error": null}
+{"t_ms": 6873, "tipo": "llamada", "agente": "reviewer_eficiencia", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2751, "tokens_salida": 92, "latencia_ms": 2945, "error": null}
+{"t_ms": 7485, "tipo": "llamada", "agente": "reviewer_reglas", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2567, "tokens_salida": 103, "latencia_ms": 3528, "error": null}
+{"t_ms": 7565, "tipo": "llamada", "agente": "reviewer_eficiencia", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2721, "tokens_salida": 17, "latencia_ms": 690, "error": null}
+{"t_ms": 8050, "tipo": "llamada", "agente": "reviewer_clean_code", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3277, "tokens_salida": 138, "latencia_ms": 4044, "error": null}
+{"t_ms": 8316, "tipo": "llamada", "agente": "reviewer_reglas", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 2523, "tokens_salida": 17, "latencia_ms": 829, "error": null}
+{"t_ms": 9660, "tipo": "llamada", "agente": "reviewer_clean_code", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3275, "tokens_salida": 17, "latencia_ms": 1608, "error": null}
+{"t_ms": 9813, "tipo": "llamada", "agente": "reviewer_impacto", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3015, "tokens_salida": 220, "latencia_ms": 7125, "error": null}
+{"t_ms": 11463, "tipo": "llamada", "agente": "reviewer_impacto", "modelo": "zai-org/GLM-5.3-Flash", "tokens_entrada": 3089, "tokens_salida": 17, "latencia_ms": 1648, "error": null}
+{"t_ms": 11464, "tipo": "unir", "candidatos": 0, "unidos": 0}
+{"t_ms": 11464, "tipo": "comprobar_en_codigo", "descartados": []}
+{"t_ms": 11466, "tipo": "cierre", "status": "completed", "error": null, "uso": {"tokens_entrada": 39318, "tokens_salida": 1111}, "uso_por_agente": {"reviewer_clean_code": {"llamadas": 4, "tokens_entrada": 10167, "tokens_salida": 227}, "reviewer_reglas": {"llamadas": 3, "tokens_entrada": 6546, "tokens_salida": 171}, "reviewer_eficiencia": {"llamadas": 3, "tokens_entrada": 6922, "tokens_salida": 159}, "reviewer_impacto": {"llamadas": 4, "tokens_entrada": 9982, "tokens_salida": 327}, "reviewer_bugs": {"llamadas": 3, "tokens_entrada": 5701, "tokens_salida": 227}}}

@@ -31,7 +31,8 @@ class Hallazgo(BaseModel):
 class Estado(TypedDict, total=False):
     diff: str
     archivos: list[str]
-    hallazgos: Annotated[list[Hallazgo], operator.add]
+    candidatos: Annotated[list[Hallazgo], operator.add]  # los reviewers escriben en paralelo
+    hallazgos: list[Hallazgo]
     informe: str | None
     avisos: Annotated[list[str], operator.add]
     # capa 2

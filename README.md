@@ -24,7 +24,7 @@ Con la H200 de la USFQ hace falta la VPN GlobalProtect conectada. El id del mode
 ## Uso
 
 ```bash
-.venv/bin/python -m revisor evaluacion/parte0/a_impuesto.patch --sistema baseline
+.venv/bin/python -m revisor evaluacion/parte0/a_impuesto.patch --sistema multiagente
 ```
 
 Recibe la ruta de un parche, lo aplica sobre una copia temporal de `repo-prueba/` y devuelve el informe. La traza de la corrida queda en `corridas/`.
@@ -47,7 +47,10 @@ La salida cruda de cada uno está en `evaluacion/parte0/salidas/`.
 .venv/bin/python -m evaluacion.construir_casos        # regenera los parches y golden_set.json
 .venv/bin/python -m evaluacion.evaluar --verificar    # demuestra en código la verdad de cada caso
 .venv/bin/python -m evaluacion.evaluar --sistema baseline
+.venv/bin/python -m evaluacion.evaluar --sistema multiagente
 ```
+
+Sistemas disponibles: `baseline` (un solo agente), `multiagente` (cinco reviewers, verificador y sintetizador) y las ablaciones `sin_verificador` y `sin_rag`.
 
 Los resultados crudos quedan en `resultados/`: una fila por caso en `resultados_<sistema>.csv`, una fila por sistema en `resumen.csv` y la traza de cada corrida en `trazas/`.
 

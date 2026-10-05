@@ -43,9 +43,10 @@ def revisar(
     herramientas: list[str],
     contexto: Contexto,
     rol: str = "reviewer",
+    max_pasos: int | None = None,
 ) -> tuple[list[Hallazgo], str | None]:
     tarea = f"Revisa este diff. Los archivos del repositorio ya tienen el cambio aplicado.\n\n```diff\n{diff}\n```"
-    final = ejecutar_agente(nombre, sistema, tarea, herramientas, contexto, rol)
+    final = ejecutar_agente(nombre, sistema, tarea, herramientas, contexto, rol, max_pasos)
     lista = invocar_estructurado(
         contexto.llm_de(rol),
         ListaDeHallazgos,
