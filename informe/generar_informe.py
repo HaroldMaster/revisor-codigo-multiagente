@@ -84,7 +84,7 @@ def archivo(ruta: str, desde: str | None = None, hasta: str | None = None, quita
     return pre("\n".join(l for l in lineas if not any(q in l for q in quitar)))
 
 
-ANCHO_FIGURA = {"bucle": 72, "baseline": 62}
+ANCHO_FIGURA = {"bucle": 72, "baseline": 62, "devcycle": 100}
 
 
 def diagrama(nombre: str, pie: str) -> str:

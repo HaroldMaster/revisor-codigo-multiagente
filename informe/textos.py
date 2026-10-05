@@ -34,15 +34,29 @@ def portada(p, **k):
     p("<div class='sub'>Harold Flores · MMIA 6013 IA Generativa y Agentes · Universidad San Francisco de Quito · opción de tema libre</div>")
 
 
-def motivacion(p, tabla, **k):
+def resumen(p, datos, **k):
+    r, rg = datos.resumen_por_sistema(), datos.resumen_por_sistema("grande")
+    m = lambda res, s, k: datos.media(res[s][k])  # noqa: E731
+    p("<h2>Resumen</h2>")
+    p(f"<p>Se construyó un revisor de código con siete agentes en LangGraph y se comparó con un revisor de un solo agente, usando el mismo modelo y los mismos casos de prueba, tres veces cada uno. En 14 cambios pequeños, el sistema de siete agentes encontró los 14 problemas y el de un agente {datos.dec(m(r, 'baseline', 'encontrados'))}, pero usando {datos.dec(m(r, 'multiagente', 'tokens_entrada') / m(r, 'baseline', 'tokens_entrada'))} veces más tokens. En tres cambios más difíciles la diferencia fue mayor ({datos.dec(m(rg, 'multiagente', 'encontrados'))} contra {datos.dec(m(rg, 'baseline', 'encontrados'))} de 14). Sin embargo, un solo agente con mejores instrucciones y un nivel medio de razonamiento llegó casi al mismo resultado con muchos menos tokens. La conclusión es que conviene ajustar primero un solo agente y añadir más agentes solo donde una medición muestre que ayudan.</p>")
+
+
+def motivacion(p, tabla, diagrama, **k):
     p("<h2>Motivación</h2>")
-    p("<p>En el trabajo uso un conjunto de <i>skills</i> propias para Claude Code: <code>dev-cycle</code> (implementar un ticket), <code>review-custom</code> (revisar mis cambios antes de un commit) y <code>review-comments</code> (resolver el feedback de un PR). Cada una es una receta escrita en prosa que un solo agente sigue paso a paso. Funcionan, pero tienen tres límites que una receta no puede resolver:</p>")
+    p("<p>En mi trabajo programo con Claude Code, un asistente de programación que funciona en la terminal: uno le pide una tarea y el asistente lee el código, ejecuta comandos y propone cambios. Claude Code permite escribir <i>skills</i>. Una skill es un archivo de texto con instrucciones paso a paso que el asistente sigue cuando se la invoca por su nombre. No es código, es una receta escrita en prosa. Yo escribí varias para mi trabajo diario, y tres de ellas son el punto de partida de este taller:</p>")
+    p(tabla(["skill", "para qué la uso", "qué pasos tiene"], [
+        ["<code>dev-cycle</code>", "Implementar un ticket de principio a fin", "Escribe un plan de commits y espera mi aprobación. Después, por cada commit: implementa, corre lint, tests y tipos, hace un review, me explica el cambio y espera mi aprobación antes de hacer el commit"],
+        ["<code>review-custom</code>", "Revisar mis cambios antes de un commit o un PR", "Lee el diff y el código alrededor, revisa bugs, reglas del proyecto, estilos, código sin uso y otras dimensiones, verifica cada problema antes de reportarlo y entrega un informe"],
+        ["<code>review-comments</code>", "Resolver los comentarios que me dejan en un PR", "Clasifica cada comentario, verifica si el problema es real, aplica los arreglos que apruebo y redacta las respuestas"],
+    ]))
+    p(diagrama("devcycle", "Figura 1. Los pasos de la skill dev-cycle. En azul, el paso de review, que es el que se construye en este taller."))
+    p("<p>Estas skills funcionan, pero al ser una receta que sigue un solo agente tienen tres límites:</p>")
     p(tabla(["límite", "qué pasa hoy", "qué haría falta"], [
         ["El flujo vive en el prompt", "Los pasos y los puntos de &quot;STOP: pedir aprobación&quot; son instrucciones. Que se cumplan depende de que el modelo las obedezca.", "Que el orden y las pausas estén en código."],
         ["Un solo agente hace todo", "El mismo agente que escribe el código lo revisa, con toda la conversación de cómo lo escribió delante.", "Que quien verifica no haya visto cómo se llegó al hallazgo."],
         ["Un solo proveedor", "Las skills solo corren en Claude Code, con los modelos de Anthropic.", "Poder cambiar de modelo sin reescribir nada."],
     ]))
-    p("<p>El objetivo final es llevar <code>dev-cycle</code> completo a un grafo de LangGraph. Este taller es el primer paso: toma un solo paso de ese ciclo, el review (el 2.3 de <code>dev-cycle</code>, que hoy invoca a <code>review-custom</code>), lo construye como sistema multiagente independiente del proveedor y, sobre todo, lo mide contra la versión de un solo agente. La pregunta del taller es la misma que deja planteada el curso: si repartir el trabajo entre varios agentes mejora el resultado, y cuánto cuesta.</p>")
+    p("<p>El objetivo final es llevar <code>dev-cycle</code> completo a un grafo de LangGraph. Este taller es el primer paso: toma un solo paso de ese ciclo, el review (el paso 4 de la figura, que hoy lo hace <code>review-custom</code>), lo construye como sistema multiagente independiente del proveedor y, sobre todo, lo mide contra la versión de un solo agente. La pregunta del taller es la misma que deja planteada el curso: si repartir el trabajo entre varios agentes mejora el resultado, y cuánto cuesta.</p>")
 
 
 def que_se_construyo(p, tabla, datos, **k):
@@ -82,12 +96,12 @@ def parte1(p, tabla, pre, pasos_de, diagrama, informe_de, datos, RAIZ, recolecta
     p("<h2>Parte 1 — El revisor: baseline y capa multiagente</h2>")
     p("<h3>El bucle de un agente</h3>")
     p("<p>Todo agente del sistema es el mismo grafo de dos nodos (<code>revisor/agentes/bucle.py</code>). Lo que cambia de un agente a otro es su prompt y qué herramientas recibe.</p>")
-    p(diagrama("bucle", "Figura 1. El bucle de un agente. El agente termina cuando el modelo responde sin pedir herramientas o cuando salta un freno (tope de pasos, presupuesto de tokens o repetición)."))
+    p(diagrama("bucle", "Figura 2. El bucle de un agente. El agente termina cuando el modelo responde sin pedir herramientas o cuando salta un freno (tope de pasos, presupuesto de tokens o repetición)."))
     p("<h3>Baseline: un solo agente</h3>")
     p("<p><code>revisor/baseline.py</code>. Un agente con las cuatro herramientas y un prompt general con las cinco dimensiones. Es la skill <code>review-custom</code> llevada a LangGraph, con el mismo modelo que el resto: entre el baseline y el sistema multiagente solo cambia el reparto del trabajo.</p>")
-    p(diagrama("baseline", "Figura 2. El baseline. En azul el agente, en gris los pasos que son código sin modelo."))
+    p(diagrama("baseline", "Figura 3. El baseline. En azul el agente, en gris los pasos que son código sin modelo."))
     p("<h3>Capa multiagente</h3>")
-    p(diagrama("multiagente", "Figura 3. El sistema multiagente. En azul los siete agentes, en gris los pasos que son código sin modelo."))
+    p(diagrama("multiagente", "Figura 4. El sistema multiagente. En azul los siete agentes, en gris los pasos que son código sin modelo."))
     p(tabla(["agente", "qué hace", "herramientas"], [
         ["Reviewer de bugs", "Errores de lógica, casos borde, tests que no afirman nada", "leer, grep, checks"],
         ["Reviewer de reglas", "Incumplimientos de las normas. Solo cita lo que el RAG le devolvió", "RAG, leer, grep"],
@@ -111,13 +125,15 @@ def parte1(p, tabla, pre, pasos_de, diagrama, informe_de, datos, RAIZ, recolecta
     cuenta = Counter(f.fuente for f in recolectar(perfil))
     fuentes = tomllib.loads((RAIZ / "revisor/rag/fuentes_aprobadas.toml").read_text(encoding="utf-8"))["fuente"]
     descarga = {d["id"]: d for d in json.loads((RAIZ / "revisor/rag/fuentes/DESCARGA.json").read_text(encoding="utf-8"))}
-    filas = [["Reglas del repo (<code>CLAUDE.md</code>, R1 a R16)", "propia", cuenta["CLAUDE.md"], "—"]]
+    filas = [["Reglas del repo (<code>CLAUDE.md</code>, R1 a R16)", "propia", "repo-prueba/CLAUDE.md", cuenta["CLAUDE.md"], "—"]]
     for f in fuentes:
         tipo = "repositorio comunitario" if f["id"] == "clean-code-typescript" else "documentación oficial"
-        filas.append([f["motivo"].split(". Repositorio")[0], tipo, cuenta[f"docs/{f['id']}.md"], descarga[f["id"]]["fecha"]])
+        partes_url = f["url"].split("/")
+        origen = f"github.com/{partes_url[3]}/{partes_url[4]}"
+        filas.append([f["motivo"].split(". Repositorio")[0], tipo, origen, cuenta[f"docs/{f['id']}.md"], descarga[f["id"]]["fecha"]])
     p("<h3>El RAG</h3>")
     p(f"<p>El índice tiene {sum(cuenta.values())} fragmentos, uno por sección de cada documento, con embeddings de bge-m3 y búsqueda por coseno en memoria. No hay búsqueda web en vivo: un script descarga una lista cerrada de fuentes, aprobada a mano, y anota fecha y huella de cada una (<code>revisor/rag/fuentes/DESCARGA.json</code>). Un agente evaluado contra la web viva mediría la web.</p>")
-    p(tabla(["fuente", "tipo", "fragmentos", "descargada"], filas, numericas=(2,)))
+    p(tabla(["fuente", "tipo", "de dónde se descargó", "fragmentos", "fecha"], filas, numericas=(3,)))
     p("<p><code>clean-code-typescript</code> es una adaptación comunitaria del libro <i>Clean Code</i>, no documentación oficial. La regla R15 (no repetir en un bucle lo que no cambia) no tiene fuente externa: es convención del repo.</p>")
 
     p("<h3>Las seis correcciones, en este sistema</h3>")
@@ -131,10 +147,9 @@ def parte1(p, tabla, pre, pasos_de, diagrama, informe_de, datos, RAIZ, recolecta
     ]))
     p("<p>Contrato con el Taller 4: las clases de <code>revisor/sistemas.py</code> se instancian sin argumentos y <code>.run(pregunta)</code> devuelve <code>answer</code>, <code>trace</code>, <code>status</code>, <code>model</code> y <code>usage</code>. La pregunta es la ruta de un parche.</p>")
 
-    p("<h3>Dos corridas</h3>")
-    p("<p>Las dos tablas siguientes muestran los primeros pasos de dos corridas, tomados de sus trazas. Cada fila es una acción de un agente: la herramienta que pidió y lo que recibió, o lo que respondió cuando no pidió ninguna. En el sistema multiagente los reviewers trabajan a la vez, por eso sus filas aparecen mezcladas. La primera es el caso C01 con el baseline y la segunda el caso C11 con el sistema multiagente. Las trazas completas están en <code>resultados/trazas/</code>.</p>")
+    p("<h3>Una corrida, paso a paso</h3>")
+    p("<p>La tabla muestra los pasos del baseline en el caso C01, tomados de su traza. Cada fila es una acción del agente: la herramienta que pidió y lo que recibió, o lo que respondió cuando no pidió ninguna. Las trazas completas de todas las corridas están en <code>resultados/trazas/</code>.</p>")
     p(pasos_de("resultados/trazas/baseline/C01.jsonl", maximo=6))
-    p(pasos_de("resultados/trazas/multiagente/C11.jsonl", maximo=8))
     p("<h3>El informe que entrega</h3>")
     p("<p>Lo que recibe quien usa el sistema es un informe de review en texto. Sale por la terminal al correr <code>python -m revisor &lt;parche&gt;</code>, es el campo <code>answer</code> de lo que devuelve <code>.run()</code>, y queda guardado al final de la traza de cada corrida. Estos son los dos informes que se entregaron para el mismo caso, el C06, donde un método nuevo devuelve <code>-1</code> en vez de lanzar un error. En el baseline el informe lo arma el código a partir de los hallazgos. En el sistema multiagente lo redacta el sintetizador, con los hallazgos que pasaron por el verificador.</p>")
     p(informe_de("resultados/trazas/baseline/C06.jsonl", "Informe del baseline para el caso C06"))
@@ -156,7 +171,7 @@ def parte2a(p, tabla, datos, RAIZ, **k):
     p(tabla(["caso", "tipo", "dimensión", "qué se sembró", "cómo se demuestra", "lint, tipos y tests en verde"], filas))
     silenciosos = sum(1 for c in golden if c["tipo"] in ("simple", "multi", "adversarial") and verificacion[c["id"]]["checks_en_verde"] == "True")
     con_problema = sum(1 for c in golden if c["tipo"] != "negativo")
-    p(f"<p>La verdad no es una etiqueta: <code>evaluar.py --verificar</code> la ejecuta. Para un bug, un test oculto que falla con el parche (y pasa sin él cuando el código ya existía). Para una regla, un patrón en el archivo o un check que falla. Para el código sin uso, que el símbolo aparezca una sola vez. Los 14 casos pasan esa comprobación. En {silenciosos} de los {con_problema} casos con problema, lint, tipos y tests quedan en verde con el problema dentro.</p>")
+    p(f"<p>La respuesta esperada de cada caso no está escrita a mano, se comprueba ejecutando <code>evaluar.py --verificar</code>, y los 14 casos pasan esa comprobación. En {silenciosos} de los {con_problema} casos con problema, lint, tipos y tests siguen pasando con el problema dentro.</p>")
     p("<p>Un hallazgo cuenta como acierto si cae en el archivo y el rango de líneas esperados y, cuando el caso lo pide, menciona lo que debe (por ejemplo &quot;descuento&quot;). Aparte se cuenta si citó la regla correcta. Los hallazgos fuera de todo rango esperado se cuentan como &quot;no esperados&quot;: no se juzga si son falsos, así que solo los dos casos limpios miden falsas alarmas de verdad.</p>")
 
 
@@ -199,6 +214,9 @@ def _tabla_por_caso(tabla, datos, conjunto="", sistemas=None):
               "multiagente_razonamiento_alto": "multiagente, raz. alto"}
     filas = []
     for caso in sorted(aciertos):
+        celdas = [aciertos[caso].get(sistema, [0, 0, 0]) for sistema, _ in presentes]
+        if all(e == t and (t > 0 or h == 0) for e, t, h in celdas):
+            continue  # todos los sistemas lo resolvieron bien en todas las corridas
         fila = [caso]
         for sistema, _ in presentes:
             encontrados, esperados, hallazgos = aciertos[caso].get(sistema, [0, 0, 0])
@@ -212,7 +230,7 @@ def parte2b(p, tabla, datos, **k):
     p("<p>Al inicio cada sistema se midió una sola vez, apenas se terminaba de construir. Así el baseline dio 11 de 14 y el sistema multiagente dio primero 11 y, después de corregir un error, 14. Pero cuando se volvió a medir todo junto, el mismo baseline dio 13. Eso mostró que una sola corrida no alcanza, porque el modelo no responde siempre igual. Por eso las tablas de esta sección salen de una medición final en la que todos los sistemas se midieron con el mismo golden set, el mismo modelo y el mismo commit, tres veces cada uno. Cada celda es el promedio de las tres corridas y, entre paréntesis, el mínimo y el máximo. Un solo número significa que las tres dieron lo mismo. Las cifras salen de <code>resultados/resultados_&lt;sistema&gt;[_rN].csv</code>.</p>")
     p(_tabla_sistemas(tabla, datos))
     p("<p>Baseline: un agente con un prompt general. &quot;Con las instrucciones de los reviewers&quot;: el mismo agente único con las instrucciones detalladas de los cinco reviewers juntas (control). Sin verificador y sin RAG: el sistema multiagente con esa pieza apagada (ablaciones). Razonamiento medio y alto: el parámetro <code>reasoning_effort</code> del modelo, que por defecto está en <code>low</code> (extensión, Parte 4). Los negativos no entran en &quot;problemas encontrados&quot;: no hay nada que acertar.</p>")
-    p("<p>Aciertos por caso, sumando las tres corridas (3/3 es &quot;lo encontró las tres veces&quot;):</p>")
+    p("<p>La tabla siguiente muestra solo los casos en los que algún sistema falló, sumando las tres corridas (3/3 significa que lo encontró las tres veces). Los demás casos los resolvieron bien todos los sistemas en todas las corridas.</p>")
     p(_tabla_por_caso(tabla, datos))
 
     r = datos.resumen_por_sistema()
@@ -264,27 +282,18 @@ def parte3(p, tabla, archivo, datos, **k):
     p("<p>Estos frenos tienen límites. El presupuesto se revisa antes de cada llamada, así que puede pasarse por una. El detector de repetición solo ve la llamada idéntica, no al agente que alterna entre dos llamadas o cambia un poco los argumentos, y para eso queda el tope de pasos. No hay confirmación humana porque ninguna herramienta escribe.</p>")
 
     c = datos.calibracion()
-    filas = []
-    for sistema, nombre in datos.SISTEMAS:
-        if sistema in c["pasos"]:
-            pasos, tokens = sorted(c["pasos"][sistema]), sorted(c["tokens"][sistema])
-            filas.append([nombre, len(pasos), pasos[len(pasos) // 2], pasos[-1],
-                          datos.miles(tokens[len(tokens) // 2]), datos.miles(tokens[-1])])
+    max_llamadas = max(max(v) for v in c["pasos"].values())
+    max_tokens = max(max(v) for v in c["tokens"].values())
     checks = c["checks"]
     p("<h3>De dónde salen los límites</h3>")
     p("<p>Los valores de los límites los puse antes de medir y sin una referencia, lo cual es una debilidad del trabajo. Después los comparé con lo que usaron las corridas de verdad:</p>")
-    p(tabla(["sistema", "corridas", "llamadas del reviewer más ocupado: mediana", "máximo", "tokens por corrida: mediana", "máximo"], filas, numericas=(1, 2, 3, 4, 5)))
-    p(tabla(["límite", "valor", "con qué se contrasta", "veredicto"], [
-        ["Pasos por agente", "12 (10 en los reviewers, 6 en el verificador)", "LangGraph 1.2.12 no pone un tope útil por defecto (<code>DEFAULT_RECURSION_LIMIT</code> = 10 007 en el paquete instalado): el tope es responsabilidad de quien escribe el agente. El máximo observado está en la tabla de arriba", "Razonable: deja margen sobre el peor caso sin permitir bucles largos"],
-        ["Tokens por corrida", "400 000, con 30 000 de reserva", "No se encontró una recomendación externa con un número: depende del modelo y del costo. Solo queda la medición propia", "Demasiado holgado y mal planteado: es un solo límite para todos los sistemas. Debería ser por sistema, por ejemplo el doble de su peor caso"],
-        ["Tiempo de un check", "120 s", f"Vitest 4.1.11 corta cada test a los 5 s por defecto. En {len(checks)} ejecuciones medidas el check tardó {datos.dec(checks[len(checks) // 2] / 1000)} s de mediana y {datos.dec(checks[-1] / 1000)} s de máximo", "El peor de los tres: sobra por dos órdenes de magnitud. Depende del repo revisado, así que debería estar en <code>perfil.toml</code>"],
-        ["Repetición", "más de 2 llamadas idénticas", "Ninguna referencia: es criterio", "Saltó en corridas reales (abajo)"],
-        ["Cupo de salida y tiempo por llamada", "4 096 tokens y 60 s (antes 8 192 y 180 s)", "Se midieron tres cupos sobre los casos difíciles (Parte 4.3)", "Faltaban como frenos: se añadieron al final, al ver llamadas de más de dos minutos que no devolvían nada"],
+    p(tabla(["límite", "valor", "qué usaron las corridas", "cómo quedó"], [
+        ["Pasos por agente", "12", f"El agente más ocupado hizo {max_llamadas} llamadas en una corrida", "Razonable"],
+        ["Tokens por corrida", "400 000", f"La corrida más cara usó {datos.miles(max_tokens)}", "Muy alto. Debería ser un límite distinto para cada sistema"],
+        ["Tiempo de un check", "120 s", f"El check más lento tardó {datos.dec(checks[-1] / 1000)} s", "Muy alto, y debería estar en el perfil del repo"],
+        ["Llamadas repetidas", "más de 2 iguales", "Saltó una vez en una corrida real, con el reviewer de reglas", "Razonable"],
+        ["Tokens de salida y tiempo por llamada", "4 096 y 60 s", "Se añadieron al final (Parte 4.3)", "Faltaban"],
     ]))
-    reales = [(s, f, a, n) for (s, f, a), n in c["frenos"].items()]
-    if reales:
-        p("<p>Además de los forzados, estos frenos saltaron solos en las corridas medidas:</p>")
-        p(tabla(["sistema", "freno", "agente", "veces"], [[dict(datos.SISTEMAS).get(s, s), f, a, n] for s, f, a, n in sorted(reales)], numericas=(3,)))
     p("<p>El presupuesto de tokens y el tiempo máximo de un check nunca saltaron en una corrida medida, así que los resultados no dependen de esos valores. Falta un freno, que es un límite de tiempo para la corrida completa.</p>")
 
 
@@ -296,21 +305,20 @@ def parte4(p, tabla, datos, **k):
         chico, grande = r14[sistema], rg.get(sistema)
         return [agentes, nivel, f"{datos.media_y_rango(chico['encontrados'])} de 14",
                 datos.media_y_rango(chico["falsas_alarmas"]), datos.miles(datos.media(chico["tokens_entrada"])),
-                f"{datos.media(chico['segundos']):.0f}",
-                f"{datos.media_y_rango(grande['encontrados'])} de 14" if grande else "—"]
+                f"{datos.media(chico['segundos']):.0f}"]
 
     p("<h2>Parte 4 — Extensión: cuánto razona el modelo, y código más difícil</h2>")
     p("<p>La extensión se eligió después de medir el baseline, para saber si antes de añadir agentes alcanzaba con que uno solo razonara más. Después se hicieron dos pruebas más por dudas que dejaron los resultados: qué pasa con cambios más difíciles y por qué algunas corridas tardaban tanto.</p>")
 
     p("<h3>4.1 — El nivel de razonamiento</h3>")
     p("<p>El modelo de la H200 acepta un parámetro <code>reasoning_effort</code> que le indica cuánto &quot;pensar&quot; antes de responder. Todo el taller corre con <code>low</code>. Aquí se cambia solo ese valor, con el mismo golden set.</p>")
-    p(tabla(["agentes", "razonamiento", "encontrados, 14 casos", "hallazgos en casos limpios", "tokens de entrada", "segundos", "encontrados, casos difíciles (4.2)"], [
+    p(tabla(["agentes", "razonamiento", "encontrados, 14 casos", "hallazgos en casos limpios", "tokens de entrada", "segundos"], [
         fila_razonamiento("baseline", "uno", "bajo"),
         fila_razonamiento("baseline_razonamiento_medio", "uno", "medio"),
         fila_razonamiento("baseline_razonamiento_alto", "uno", "alto"),
         fila_razonamiento("multiagente", "siete", "bajo"),
         fila_razonamiento("multiagente_razonamiento_alto", "siete", "alto"),
-    ], numericas=(2, 3, 4, 5, 6)))
+    ], numericas=(2, 3, 4, 5)))
     medio, base, multi = r14["baseline_razonamiento_medio"], r14["baseline"], r14["multiagente"]
     p(f"<p>Con razonamiento medio, un solo agente encontró los 14 problemas en sus tres corridas, sin reportar nada en los casos que estaban bien, usando {datos.dec(datos.media(medio['tokens_entrada']) / datos.media(base['tokens_entrada']))} veces los tokens del baseline. Eso sí, es el más lento ({datos.media(medio['segundos']):.0f} segundos contra {datos.media(multi['segundos']):.0f} del multiagente), porque al razonar el modelo escribe mucho más. El nivel alto no fue mejor que el medio. En el multiagente subir el razonamiento no encontró más y sí hizo que reportara más en los casos que estaban bien. Al inicio yo había descartado el nivel medio por una sola llamada de prueba, y al medirlo bien resultó ser el mejor para un agente único.</p>")
 
@@ -350,17 +358,9 @@ def parte4(p, tabla, datos, **k):
         filas.append([etiqueta, v["llamadas"], v["vacias"], f"{v['seg_vacias']:.0f}", f"{100 * v['seg_vacias'] / v['seg_modelo']:.0f} %", f"{v['mas_lenta']:.0f}"])
     p(tabla(["corridas (suma de las tres)", "llamadas al modelo", "vacías", "segundos en llamadas vacías", "parte del tiempo de modelo", "llamada más lenta, s"], filas, numericas=(1, 2, 3, 4, 5)))
     p("<p>En los casos pequeños casi no pasa, pero en los difíciles estas llamadas se llevan más del 40 % del tiempo, y al multiagente le afecta más porque hace unas diez veces más llamadas. Había tres decisiones mías que estaban mal: subí el cupo de salida a 8 192 tokens cuando la primera llamada salió vacía, el reintento repetía la misma llamada, y no había un límite de tiempo por llamada.</p>")
-    filas = []
-    for etiqueta, sufijo, cupo in (("Como se midió todo lo anterior", "", "8 192"), ("Con el arreglo", "arreglo", "2 048"), ("Con el arreglo y cupo intermedio (valor que se deja)", "cupo4096", "4 096")):
-        prefijo = "multiagente_grande" + (f"_{sufijo}" if sufijo else "")
-        v = datos.llamadas_vacias(prefijo)
-        tiempos = datos.segundos_por_caso("multiagente", "grande", sufijo)
-        por_corrida = [sum(tiempos[c][i] for c in tiempos) for i in range(len(next(iter(tiempos.values()))))]
-        filas.append([etiqueta, cupo, ", ".join(str(n) for n in datos.encontrados_con_etiqueta("multiagente", "grande", sufijo)),
-                      f"{min(por_corrida):.0f} a {max(por_corrida):.0f}", f"{v['mas_lenta']:.0f}", v["vacias"]])
-    p("<p>Lo corregí con un cupo de salida más bajo, un máximo de 60 segundos por llamada y un reintento con el nivel de razonamiento más bajo, y volví a medir el multiagente con los tres casos difíciles:</p>")
-    p(tabla(["versión", "cupo de salida", "encontrados de 14, por corrida", "segundos por corrida", "llamada más lenta, s", "llamadas vacías"], filas, numericas=(1, 3, 4, 5)))
-    p("<p>El arreglo solo resuelve una parte. Ninguna llamada pasa ya de 60 segundos, pero las llamadas vacías siguen apareciendo igual de seguido, y con un cupo muy bajo algún reviewer se queda sin espacio para responder. Los demás sistemas no se volvieron a medir con este cambio.</p>")
+    antes, despues = datos.llamadas_vacias("multiagente_grande"), datos.llamadas_vacias("multiagente_grande_cupo4096")
+    p(f"<p>Lo corregí con menos tokens de salida por llamada, un máximo de 60 segundos por llamada y un reintento con el nivel de razonamiento más bajo, y volví a medir el multiagente con los tres casos difíciles. La llamada más lenta bajó de {antes['mas_lenta']:.0f} a {despues['mas_lenta']:.0f} segundos, pero las llamadas vacías siguieron apareciendo ({antes['vacias']} antes y {despues['vacias']} después).</p>")
+    p("<p>O sea que el arreglo solo limita cuánto puede tardar una llamada, no evita que salga vacía. Los demás sistemas no se volvieron a medir con este cambio.</p>")
 
 
 def conclusiones(p, **k):
@@ -392,36 +392,15 @@ def evolucion(p, tabla, **k):
     p("<h2>Cómo se hizo el trabajo</h2>")
     p("<p>El trabajo no salió al primer intento. Se siguió la regla del curso de hacer un baseline, medirlo, extenderlo y volver a medir, y casi todas las mediciones obligaron a cambiar algo. La tabla resume ese recorrido en orden, y el resto del informe sigue ese mismo orden.</p>")
     p(tabla(["paso", "qué se hizo", "qué mostró la medición", "qué se cambió por eso"], [
-        ["1", "Parte 0, antes de construir nada",
-         "El modelo de la H200 gastó los 4 096 tokens en razonar y devolvió una respuesta vacía, sin error",
-         "El nivel de razonamiento pasó a ser un ajuste del <code>.env</code> y toda llamada detecta la respuesta vacía y reintenta (<code>revisor/llamada.py</code>)"],
-        ["2", "Primer diseño: cuatro dimensiones (bugs, reglas, código muerto, impacto) y un RAG solo con las 12 reglas del repo",
-         "Antes de medir, al revisar el diseño: un review real también mira clean code y eficiencia, y con 15 fragmentos el RAG casi sobraba (las reglas caben en el prompt)",
-         "Cinco dimensiones. Reglas R13 a R16 con su fuente. El índice pasó de 15 a 206 fragmentos con documentación descargada"],
-        ["3", "Baseline de un agente y golden set de 14 casos",
-         "11 de 14 (commit <code>dbe8dc9</code>). Las trazas mostraron los tres fallos: vio con grep que una función no se usaba y no lo reportó (C09). No miró qué hacía la llamada dentro del bucle (C10). Los tests pasaron y dio el cambio por bueno (C11)",
-         "Se escribieron los cinco reviewers especializados, con instrucciones que atacan esos tres fallos. Fue un error de método, que se corrige en el paso 6"],
-        ["4", "Capa multiagente: cinco reviewers, verificador y sintetizador",
-         "11 de 14 en la primera corrida (no se commiteó). Las trazas mostraron que el paso de unir fusionaba líneas vecinas y dimensiones distintas, y perdía hallazgos reales",
-         "Unir pasó a exigir mismo archivo, línea y dimensión. Segunda corrida: 14 de 14 (commit <code>7c85395</code>)"],
-        ["5", "Ablaciones: sin verificador y sin RAG",
-         "Sin verificador, mismo resultado con menos tokens. Sin RAG: 13 de 14 y 6 corridas incompletas",
-         "Al preguntarse si estaba bien no haber adaptado los prompts: no lo estaba. Se había quitado la herramienta pero los prompts seguían pidiéndola. Corregido, sin RAG da 14 de 14 y ninguna incompleta: la conclusión anterior era un efecto del prompt"],
-        ["6", "Revisión del método, buscando más errores como el anterior",
-         "Cuatro: instrucciones de los reviewers sacadas del examen, extensión que comparaba dos cambios a la vez, trazas sin contenido, y sistemas medidos con versiones distintas del código",
-         "Control con un agente único que recibe esas mismas instrucciones. Multiagente con razonamiento alto. Trazas con lo que el modelo pidió, observó y respondió. Una medición final de todo con un mismo commit"],
-        ["7", "Medición final de los siete sistemas",
-         "El mismo baseline que había dado 11 dio 13 de 14: la diferencia entre dos corridas era tan grande como las diferencias entre sistemas que se estaban interpretando",
-         "Tres repeticiones por sistema. Las tablas muestran promedio y rango"],
-        ["8", "Pregunta que quedaba: ¿y con código más difícil?",
-         "El repo de prueba es pequeño y un solo agente lo lee casi entero",
-         "Dos &quot;PR grandes&quot; que juntan varios casos y un caso complejo con herencia, inyección de dependencias y caché (Parte 4.2)"],
-        ["9", "Medición de los casos difíciles",
-         "El sistema multiagente sí se separa del baseline (13,7 frente a 8,7 de 14). Pero tarda mucho más de lo que justifica el tamaño de los cambios",
-         "Se revisaron las trazas llamada por llamada: cerca de la mitad del tiempo se iba en llamadas que no devolvían nada. Se bajó el cupo de salida, se añadió un límite de tiempo por llamada y se cambió el reintento (Parte 4.3)"],
-        ["10", "Razonamiento medio, que se había descartado con una sola llamada de prueba",
-         "Un solo agente con razonamiento medio encontró los 14 problemas en sus tres corridas, y los tres bugs del caso complejo",
-         "La conclusión del taller pasó de &quot;el multiagente gana en código difícil&quot; a &quot;primero conviene ajustar el agente único&quot;"],
+        ["1", "Parte 0, antes de construir", "El modelo gastaba todos sus tokens razonando y devolvía una respuesta vacía", "Se limitó el razonamiento y se añadió un reintento"],
+        ["2", "Primer diseño, con cuatro dimensiones y un RAG de 12 reglas", "Faltaban clean code y eficiencia, y con tan pocas reglas el RAG casi no hacía falta", "Cinco dimensiones y un índice de 206 fragmentos con documentación descargada"],
+        ["3", "Baseline y golden set de 14 casos", "11 de 14. Fallaba en código sin uso, eficiencia e impacto", "Se escribieron los cinco reviewers pensando en esos fallos, lo cual fue un error que se corrige en el paso 6"],
+        ["4", "Sistema multiagente", "11 de 14, porque el paso de unir perdía hallazgos", "Se corrigió el paso de unir y dio 14 de 14"],
+        ["5", "Ablaciones sin verificador y sin RAG", "Sin RAG salían corridas incompletas", "Era por los prompts, que seguían pidiendo una herramienta que ya no existía. Se corrigieron"],
+        ["6", "Revisión de la forma de medir", "Los reviewers tenían mejores instrucciones que el baseline, y cada sistema se había medido con una versión distinta del código", "Un control con un agente único y las mismas instrucciones, y una medición final con el mismo commit"],
+        ["7", "Medición final", "El mismo baseline dio 13 en vez de 11", "Tres corridas por sistema"],
+        ["8", "Casos más difíciles", "El multiagente sí se separa del baseline, pero tarda demasiado", "Se encontró que el tiempo se iba en llamadas vacías y se pusieron límites"],
+        ["9", "Razonamiento medio", "Un solo agente encuentra casi lo mismo que el multiagente", "Cambió la conclusión del taller"],
     ]))
     p("<p>Los casos de prueba también fueron cambiando. Los 14 casos pequeños sirvieron para ver en qué fallaba el baseline, pero después casi todos los sistemas los resolvían y ya no permitían diferenciarlos. Los dos PR grandes bajaron un poco al agente único. El caso que más sirvió fue el último, el complejo, porque fue el único donde los sistemas se separaron con claridad.</p>")
 
@@ -471,5 +450,5 @@ cp .env.example .env                                  # VPN de la USFQ conectada
     p("<p>Ninguna credencial aparece en el código, las trazas ni el repositorio: se leen de un <code>.env</code> que <code>.gitignore</code> excluye, las herramientas no pueden leerlo y los comandos corren sin las variables del entorno. Se buscaron patrones de clave en <code>resultados/</code> antes de cada commit.</p>")
 
 
-SECCIONES = [portada, motivacion, que_se_construyo, evolucion, parte0, parte1, parte2a, parte2b, parte2c, parte3, parte4,
+SECCIONES = [portada, resumen, motivacion, que_se_construyo, evolucion, parte0, parte1, parte2a, parte2b, parte2c, parte3, parte4,
              conclusiones, parte5, limitaciones, futuro, reproducibilidad]
