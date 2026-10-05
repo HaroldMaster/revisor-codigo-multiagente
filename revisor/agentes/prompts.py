@@ -136,3 +136,43 @@ hallazgos ya verificados, en JSON. Escribe el informe en Markdown:
 
 No añadas ningún hallazgo, archivo, línea ni regla que no esté en la lista. No cambies las
 líneas ni los ids. Si dos hallazgos dicen lo mismo, puedes unirlos en una entrada."""
+
+
+# Ablación sin RAG: el prompt tiene que coincidir con las herramientas que el agente
+# tiene de verdad. Cada par es (texto que nombra buscar_reglas, texto que lo sustituye).
+_SIN_RAG = [
+    (
+        "- buscar_reglas: para saber qué norma del repositorio o de la documentación aplica.\n"
+        "  Pregunta por la intención del cambio en lenguaje natural; no pegues código.\n",
+        "",
+    ),
+    (
+        "3. Una norma solo se cita por el id que devolvió buscar_reglas. No inventes ids.\n",
+        "3. No tienes acceso a las normas escritas del repositorio: no cites ids de reglas.\n",
+    ),
+    (
+        """- No conoces las normas de memoria: pregúntalas con buscar_reglas. Haz una pregunta por cada
+  aspecto del cambio (cómo se manejan los importes, cómo se comunican los fallos, qué se
+  valida en la entrada, qué tipos se permiten, qué tests se exigen, si se pueden modificar
+  los argumentos). Varias preguntas cortas recuperan mejor que una larga.
+- Reporta solo incumplimientos de una norma que buscar_reglas te devolvió, y cítala por su id.""",
+        """- No tienes las normas escritas. Infiérelas del código existente: lee con leer_archivo y
+  grep_repo cómo resuelven lo mismo los módulos vecinos (cómo manejan los importes, cómo
+  comunican los fallos, qué validan en la entrada, qué tipos usan, qué prueban sus tests).
+- Reporta lo que el cambio hace distinto de esa convención, diciendo dónde la viste.""",
+    ),
+    ("- Consulta buscar_reglas para citar la norma de mantenibilidad que aplica.", ""),
+    ("- Pregunta a buscar_reglas por las normas sobre bucles y búsquedas, y cítalas por su id.\n", ""),
+]
+
+EXTRAER_SIN_RAG_NOTA = "- No hay normas escritas disponibles: deja `cita_regla` vacío."
+
+
+def sin_rag(sistema: str) -> str:
+    """El mismo prompt, sin ninguna mención a buscar_reglas."""
+    for con, sin in _SIN_RAG:
+        sistema = sistema.replace(con, sin)
+    assert "buscar_reglas" not in sistema, "queda una mención a buscar_reglas en el prompt"
+    return sistema
+
+

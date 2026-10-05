@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from langgraph.graph import END, START, StateGraph
 
-from .agentes.prompts import REVIEWERS
+from .agentes.prompts import REVIEWERS, sin_rag
 from .agentes.reviewer import revisar
 from .agentes.sintetizador import sintetizar
 from .agentes.verificador import comprobar_en_codigo, unir, verificar_con_modelo
@@ -40,9 +40,11 @@ class RevisorMultiagente(RevisorBase):
                 h for h in definicion["herramientas"] if self.con_rag or h != "buscar_reglas"
             ]
 
+            sistema = definicion["sistema"] if self.con_rag else sin_rag(definicion["sistema"])
+
             def reviewer(estado: Estado) -> dict:
                 hallazgos, corte = revisar(
-                    nombre, definicion["sistema"], estado["diff"], herramientas, contexto,
+                    nombre, sistema, estado["diff"], herramientas, contexto,
                     max_pasos=MAX_PASOS_REVIEWER,
                 )
                 avisos = [f"{nombre} se detuvo por {corte}; su revisión puede estar incompleta."] if corte else []

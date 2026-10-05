@@ -9,6 +9,7 @@ from ..contexto import Contexto
 from ..estado import Dimension, Hallazgo, Severidad
 from ..llamada import invocar_estructurado
 from .bucle import ejecutar_agente
+from .prompts import EXTRAER_SIN_RAG_NOTA
 
 
 class HallazgoPropuesto(BaseModel):

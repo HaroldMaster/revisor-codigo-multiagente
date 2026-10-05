@@ -75,3 +75,10 @@ def test_el_informe_no_puede_mencionar_ubicaciones_ni_reglas_ajenas():
         "R7",
         "src/otro.ts:5",
     ]
+
+
+def test_en_la_ablacion_sin_rag_ningun_prompt_nombra_la_herramienta_que_no_existe():
+    from revisor.agentes.prompts import REVIEWERS, sin_rag
+
+    for definicion in REVIEWERS.values():
+        assert "buscar_reglas" not in sin_rag(definicion["sistema"])
