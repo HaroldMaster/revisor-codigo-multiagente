@@ -176,3 +176,16 @@ def sin_rag(sistema: str) -> str:
     return sistema
 
 
+# Control: un solo agente con las mismas instrucciones de los cinco reviewers.
+# Las pistas de los reviewers se escribieron después de ver en qué fallaba el
+# baseline; este prompt le da al agente único esas mismas pistas, para separar
+# el efecto de «varios agentes» del efecto de «mejores instrucciones».
+_PREFIJO = _especialista("")
+UNICO_CON_PISTAS = (
+    UNICO
+    + "\n\nCómo revisar cada dimensión:\n\n"
+    + "\n\n".join(
+        definicion["sistema"][len(_PREFIJO):].replace("Tu tarea: ", "", 1)
+        for definicion in REVIEWERS.values()
+    )
+)

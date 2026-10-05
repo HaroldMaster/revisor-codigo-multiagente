@@ -17,7 +17,7 @@ from langgraph.graph import END, START, StateGraph
 
 from evaluacion.repo_temporal import REPO_PRUEBA, repo_con_parches
 
-from .agentes.prompts import TODAS, UNICO
+from .agentes.prompts import TODAS, UNICO, UNICO_CON_PISTAS
 from .agentes.reviewer import revisar
 from .config import RAIZ, get_embeddings, get_llm, id_modelo
 from .contexto import Contexto
@@ -95,14 +95,15 @@ class RevisorBase:
 
 class RevisorUnico(RevisorBase):
     nombre = "baseline"
+    sistema = UNICO
 
     def grafo(self, contexto: Contexto):
         def preparar(estado: Estado) -> dict:
             return {"archivos": archivos_del_diff(estado["diff"])}
 
         def reviewer(estado: Estado) -> dict:
-            hallazgos, corte = revisar("reviewer_unico", UNICO, estado["diff"], TODAS, contexto)
-            avisos = [f"El reviewer se detuvo por {corte}; la revisión puede estar incompleta."] if corte else []
+            hallazgos, corte = revisar("reviewer_unico", self.sistema, estado["diff"], TODAS, contexto)
+            avisos = [f"El reviewer se detuvo por {corte}: la revisión no se completó."] if corte else []
             return {"hallazgos": hallazgos, "avisos": avisos}
 
         def informe(estado: Estado) -> dict:
@@ -117,3 +118,10 @@ class RevisorUnico(RevisorBase):
         grafo.add_edge("reviewer", "informe")
         grafo.add_edge("informe", END)
         return grafo.compile()
+
+
+class RevisorUnicoConPistas(RevisorUnico):
+    """Control: el agente único con las instrucciones de los cinco reviewers."""
+
+    nombre = "baseline_con_pistas"
+    sistema = UNICO_CON_PISTAS

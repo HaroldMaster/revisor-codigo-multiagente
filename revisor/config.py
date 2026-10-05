@@ -63,7 +63,7 @@ def id_modelo(rol: str = "default") -> str:
     return config_de(rol).modelo
 
 
-def get_llm(rol: str = "default"):
+def get_llm(rol: str = "default", esfuerzo: str | None = None):
     config = config_de(rol)
     max_tokens = int(os.getenv("LLM_MAX_TOKENS", "4096"))
     if config.proveedor == "anthropic":
@@ -74,7 +74,7 @@ def get_llm(rol: str = "default"):
 
     # El modelo de la H200 razona siempre y lo cobra del cupo de salida: sin
     # acotarlo puede gastar todo en razonar y devolver una respuesta vacía.
-    esfuerzo = os.getenv("LLM_REASONING_EFFORT", "")
+    esfuerzo = esfuerzo or os.getenv("LLM_REASONING_EFFORT", "")
     extras = {"reasoning_effort": esfuerzo} if esfuerzo else {}
     return ChatOpenAI(
         model=config.modelo,
